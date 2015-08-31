@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+    .bar {
+    fill: steelblue;
+    }
+
+    .bar:hover {
+    fill: brown;
+    }
+
+    .axis {
+    font: 10px sans-serif;
+    }
+
+    .axis path,
+    .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+    }
+
+    .x.axis path {
+    display: none;
+    }
+
+</style>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+<script>
+
+var margin = {top: 20, right: 20, bottom: 30, left: 40},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var x = d3.scale.ordinal()
+    .rangeRoundBands([0, width], .0);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    .orient("left");
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var data = [{"color":0,"frequency":1049088},{"color":1,"frequency":0},{"color":2,"frequency":0},{"color":3,"frequency":0},{"color":4,"frequency":0},{"color":5,"frequency":0},{"color":6,"frequency":0},{"color":7,"frequency":0},{"color":8,"frequency":0},{"color":9,"frequency":0},{"color":10,"frequency":0},{"color":11,"frequency":0},{"color":12,"frequency":0},{"color":13,"frequency":0},{"color":14,"frequency":0},{"color":15,"frequency":0},{"color":16,"frequency":0},{"color":17,"frequency":0},{"color":18,"frequency":0},{"color":19,"frequency":0},{"color":20,"frequency":0},{"color":21,"frequency":0},{"color":22,"frequency":0},{"color":23,"frequency":0},{"color":24,"frequency":0},{"color":25,"frequency":0},{"color":26,"frequency":0},{"color":27,"frequency":0},{"color":28,"frequency":0},{"color":29,"frequency":0},{"color":30,"frequency":0},{"color":31,"frequency":0},{"color":32,"frequency":0},{"color":33,"frequency":0},{"color":34,"frequency":0},{"color":35,"frequency":0},{"color":36,"frequency":0},{"color":37,"frequency":0},{"color":38,"frequency":0},{"color":39,"frequency":0},{"color":40,"frequency":0},{"color":41,"frequency":0},{"color":42,"frequency":0},{"color":43,"frequency":0},{"color":44,"frequency":0},{"color":45,"frequency":0},{"color":46,"frequency":0},{"color":47,"frequency":0},{"color":48,"frequency":0},{"color":49,"frequency":0},{"color":50,"frequency":0},{"color":51,"frequency":0},{"color":52,"frequency":0},{"color":53,"frequency":0},{"color":54,"frequency":0},{"color":55,"frequency":0},{"color":56,"frequency":0},{"color":57,"frequency":0},{"color":58,"frequency":0},{"color":59,"frequency":0},{"color":60,"frequency":0},{"color":61,"frequency":0},{"color":62,"frequency":0},{"color":63,"frequency":0},{"color":64,"frequency":0},{"color":65,"frequency":0},{"color":66,"frequency":0},{"color":67,"frequency":0},{"color":68,"frequency":0},{"color":69,"frequency":0},{"color":70,"frequency":0},{"color":71,"frequency":0},{"color":72,"frequency":0},{"color":73,"frequency":0},{"color":74,"frequency":0},{"color":75,"frequency":0},{"color":76,"frequency":0},{"color":77,"frequency":0},{"color":78,"frequency":0},{"color":79,"frequency":0},{"color":80,"frequency":0},{"color":81,"frequency":0},{"color":82,"frequency":0},{"color":83,"frequency":0},{"color":84,"frequency":0},{"color":85,"frequency":0},{"color":86,"frequency":0},{"color":87,"frequency":0},{"color":88,"frequency":0},{"color":89,"frequency":0},{"color":90,"frequency":0},{"color":91,"frequency":0},{"color":92,"frequency":0},{"color":93,"frequency":0},{"color":94,"frequency":0},{"color":95,"frequency":0},{"color":96,"frequency":0},{"color":97,"frequency":0},{"color":98,"frequency":0},{"color":99,"frequency":0},{"color":100,"frequency":0},{"color":101,"frequency":0},{"color":102,"frequency":0},{"color":103,"frequency":0},{"color":104,"frequency":0},{"color":105,"frequency":0},{"color":106,"frequency":0},{"color":107,"frequency":0},{"color":108,"frequency":0},{"color":109,"frequency":0},{"color":110,"frequency":0},{"color":111,"frequency":0},{"color":112,"frequency":0},{"color":113,"frequency":0},{"color":114,"frequency":0},{"color":115,"frequency":0},{"color":116,"frequency":0},{"color":117,"frequency":0},{"color":118,"frequency":0},{"color":119,"frequency":0},{"color":120,"frequency":0},{"color":121,"frequency":0},{"color":122,"frequency":0},{"color":123,"frequency":0},{"color":124,"frequency":0},{"color":125,"frequency":0},{"color":126,"frequency":0},{"color":127,"frequency":0},{"color":128,"frequency":0},{"color":129,"frequency":0},{"color":130,"frequency":0},{"color":131,"frequency":0},{"color":132,"frequency":0},{"color":133,"frequency":0},{"color":134,"frequency":0},{"color":135,"frequency":0},{"color":136,"frequency":0},{"color":137,"frequency":0},{"color":138,"frequency":0},{"color":139,"frequency":0},{"color":140,"frequency":0},{"color":141,"frequency":0},{"color":142,"frequency":0},{"color":143,"frequency":0},{"color":144,"frequency":0},{"color":145,"frequency":0},{"color":146,"frequency":0},{"color":147,"frequency":0},{"color":148,"frequency":0},{"color":149,"frequency":0},{"color":150,"frequency":0},{"color":151,"frequency":0},{"color":152,"frequency":0},{"color":153,"frequency":0},{"color":154,"frequency":0},{"color":155,"frequency":0},{"color":156,"frequency":0},{"color":157,"frequency":0},{"color":158,"frequency":0},{"color":159,"frequency":0},{"color":160,"frequency":0},{"color":161,"frequency":0},{"color":162,"frequency":0},{"color":163,"frequency":0},{"color":164,"frequency":0},{"color":165,"frequency":0},{"color":166,"frequency":0},{"color":167,"frequency":0},{"color":168,"frequency":0},{"color":169,"frequency":0},{"color":170,"frequency":0},{"color":171,"frequency":0},{"color":172,"frequency":0},{"color":173,"frequency":0},{"color":174,"frequency":0},{"color":175,"frequency":0},{"color":176,"frequency":0},{"color":177,"frequency":0},{"color":178,"frequency":0},{"color":179,"frequency":0},{"color":180,"frequency":0},{"color":181,"frequency":0},{"color":182,"frequency":0},{"color":183,"frequency":0},{"color":184,"frequency":0},{"color":185,"frequency":0},{"color":186,"frequency":0},{"color":187,"frequency":0},{"color":188,"frequency":0},{"color":189,"frequency":0},{"color":190,"frequency":0},{"color":191,"frequency":0},{"color":192,"frequency":0},{"color":193,"frequency":0},{"color":194,"frequency":0},{"color":195,"frequency":0},{"color":196,"frequency":0},{"color":197,"frequency":0},{"color":198,"frequency":0},{"color":199,"frequency":0},{"color":200,"frequency":0},{"color":201,"frequency":0},{"color":202,"frequency":0},{"color":203,"frequency":0},{"color":204,"frequency":0},{"color":205,"frequency":0},{"color":206,"frequency":0},{"color":207,"frequency":0},{"color":208,"frequency":0},{"color":209,"frequency":0},{"color":210,"frequency":0},{"color":211,"frequency":0},{"color":212,"frequency":0},{"color":213,"frequency":0},{"color":214,"frequency":0},{"color":215,"frequency":0},{"color":216,"frequency":0},{"color":217,"frequency":0},{"color":218,"frequency":0},{"color":219,"frequency":0},{"color":220,"frequency":0},{"color":221,"frequency":0},{"color":222,"frequency":0},{"color":223,"frequency":0},{"color":224,"frequency":0},{"color":225,"frequency":0},{"color":226,"frequency":0},{"color":227,"frequency":0},{"color":228,"frequency":0},{"color":229,"frequency":0},{"color":230,"frequency":0},{"color":231,"frequency":0},{"color":232,"frequency":0},{"color":233,"frequency":0},{"color":234,"frequency":0},{"color":235,"frequency":0},{"color":236,"frequency":0},{"color":237,"frequency":0},{"color":238,"frequency":0},{"color":239,"frequency":0},{"color":240,"frequency":0},{"color":241,"frequency":0},{"color":242,"frequency":0},{"color":243,"frequency":0},{"color":244,"frequency":0},{"color":245,"frequency":0},{"color":246,"frequency":0},{"color":247,"frequency":0},{"color":248,"frequency":0},{"color":249,"frequency":0},{"color":250,"frequency":0},{"color":251,"frequency":0},{"color":252,"frequency":0},{"color":253,"frequency":0},{"color":254,"frequency":0},{"color":255,"frequency":0}];
+
+x.domain(data.map(function(d) { return d.color; }));
+y.domain([0, d3.max(data, function(d) { return d.frequency; })]);
+
+svg.append("g")
+  .attr("class", "x axis")
+  .attr("transform", "translate(0," + height + ")")
+  .call(xAxis)
+  .append("text")
+  .attr("y", 6)
+  .attr("dy", ".71em")
+  .style("text-anchor", "begin")
+  .text("Color value");
+
+svg.append("g")
+  .attr("class", "y axis")
+  .call(yAxis)
+.append("text")
+  .attr("transform", "rotate(-90)")
+  .attr("y", 6)
+  .attr("dy", ".71em")
+  .style("text-anchor", "end")
+  .text("Frequency");
+
+svg.selectAll(".bar")
+  .data(data)
+.enter().append("rect")
+  .attr("class", "bar")
+  .attr("x", function(d) { return x(d.color); })
+  .attr("width", x.rangeBand())
+  .attr("y", function(d) { return y(d.frequency); })
+  .attr("height", function(d) { return height - y(d.frequency); });
+
+function type(d) {
+  d.frequency = +d.frequency;
+  return d;
+}
+
+</script>
