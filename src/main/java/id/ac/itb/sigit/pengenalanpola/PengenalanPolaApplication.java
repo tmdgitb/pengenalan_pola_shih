@@ -50,13 +50,13 @@ public class PengenalanPolaApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        final File imageFile= new File("B.jpg");
+        final File imageFile= new File("Beach.jpg");
         log.info("Processing image file '{}' ...", imageFile);
         final Mat imgMat = Highgui.imread(imageFile.getPath());
         log.info("Image mat: rows={} cols={}", imgMat.rows(), imgMat.cols());
 
         byte[] imagByte=new byte[3];
-        imgMat.get(0, 0, imagByte);
+         imgMat.get(0, 0, imagByte);
         log.info("Image {}", imagByte);
 
         boolean colorCounts[][][] = new boolean[256][256][256];
@@ -66,16 +66,19 @@ public class PengenalanPolaApplication implements CommandLineRunner {
         int bImage[]=new int[256];
         int grayScaleImage[]=new int[256];
 
+        Mat newImage=imgMat.clone();
+
         for (int i=0;i<imgMat.rows();i++)
         {
-            Mat scanline = imgMat.row(i);
+            Mat scanline = imgMat.row(i);;
 
             for (int j=0;j<imgMat.cols();j++)
             {
+                byte[] newImagByte=new byte[3];
                 scanline.get(0,j,imagByte);
-                int b = imagByte[0] & 0xff;
-                int g = imagByte[1] & 0xff;
-                int r = imagByte[2] & 0xff;
+                int b = Byte.toUnsignedInt(imagByte[0]);
+                int g = Byte.toUnsignedInt( imagByte[1]);
+                int r = Byte.toUnsignedInt(imagByte[2]);
 
                 log.trace("Jumlah Warna R{} G{} B {}", r, g, b);
 
@@ -90,6 +93,14 @@ public class PengenalanPolaApplication implements CommandLineRunner {
                bImage[b]++;
                int grayScale = Math.round((r + g + b)/3f);
                grayScaleImage[grayScale]++;
+
+                //fgamma
+                newImagByte[0] = (byte) fGama(b);
+                newImagByte[1] = (byte) fGama(g);
+                newImagByte[2] = (byte) fGama(r);
+
+                newImage.put(i,j,newImagByte);
+
             }
         }
 
@@ -126,5 +137,19 @@ public class PengenalanPolaApplication implements CommandLineRunner {
         log.info("Writing histogram green to {} ...", fileGray.getAbsoluteFile());
         FileUtils.write(fileGray, outGray);
 
+
+       // Highgui.imwrite("../../images/Gray_Image.jpg", newImage);
+
+        Highgui.imwrite("D:\\Gray_Image.jpg", newImage);
     }
+
+
+    int fGama(float indexWarna)
+    {
+        double k=7;
+        //  ((indexWarna/255)^(1/k))*255
+        return  Math.round( (float)Math.pow((indexWarna/255f),1/k)*255f);
+
+    }
+
 }
