@@ -66,6 +66,9 @@ public class PengenalanPolaApplication implements CommandLineRunner {
         int bImage[]=new int[256];
         int grayScaleImage[]=new int[256];
 
+        byte[] fGamaByte=getFGamaByte();
+
+
         Mat newImage=imgMat.clone();
 
         for (int i=0;i<imgMat.rows();i++)
@@ -95,9 +98,9 @@ public class PengenalanPolaApplication implements CommandLineRunner {
                grayScaleImage[grayScale]++;
 
                 //fgamma
-                newImagByte[0] = (byte) fGama(b);
-                newImagByte[1] = (byte) fGama(g);
-                newImagByte[2] = (byte) fGama(r);
+                newImagByte[0] = fGamaByte[b];//(byte) fGama(b);
+                newImagByte[1] = fGamaByte[g];//(byte) fGama(g);
+                newImagByte[2] = fGamaByte[r];//(byte) fGama(r);
 
                 newImage.put(i,j,newImagByte);
 
@@ -143,6 +146,16 @@ public class PengenalanPolaApplication implements CommandLineRunner {
         Highgui.imwrite("D:\\Gray_Image.jpg", newImage);
     }
 
+
+    byte[] getFGamaByte ()
+    {
+        byte[] fGamaByte=new  byte[256];
+        for(int i=0;i<256;i++)
+        {
+            fGamaByte[i]=(byte)fGama(i);
+        }
+        return fGamaByte;
+    }
 
     int fGama(float indexWarna)
     {
