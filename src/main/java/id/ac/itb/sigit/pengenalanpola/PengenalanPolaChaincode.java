@@ -24,7 +24,7 @@ public class PengenalanPolaChaincode implements CommandLineRunner {
      */
 
     private boolean flag [][];
-    private int toleransi=10,toleransiWhite=240;
+    private int toleransi=10,toleransiWhite=230;
     private boolean searchObject=true,searchSubObject=false;
 
     private int minHor=0,maxHor=0,minVer=0,maxVer=0;
@@ -39,7 +39,7 @@ public class PengenalanPolaChaincode implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        final File imageFile= new File("kotak.jpg");//AA_1.jpg
+        final File imageFile= new File("angka.jpg");//AA_1.jpg
         log.info("Processing image file '{}' ...", imageFile);
         final Mat imgMat = Highgui.imread(imageFile.getPath());
         log.info("Image mat: rows={} cols={}", imgMat.rows(), imgMat.cols());
