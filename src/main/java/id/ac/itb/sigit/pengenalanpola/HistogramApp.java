@@ -12,19 +12,22 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.annotation.Profile;
 
 import java.io.File;
-import java.util.Arrays;
 
 @SpringBootApplication
-public class PengenalanPolaApplication implements CommandLineRunner {
-    private static final Logger log = LoggerFactory.getLogger(PengenalanPolaApplication.class);
+@Profile("histogramapp")
+public class HistogramApp implements CommandLineRunner {
+    private static final Logger log = LoggerFactory.getLogger(HistogramApp.class);
     static {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(PengenalanPolaApplication.class, args);
+        new SpringApplicationBuilder(HistogramApp.class).profiles("histogramapp")
+                .run(args);
     }
 
     protected static class ChartData {
@@ -110,7 +113,7 @@ public class PengenalanPolaApplication implements CommandLineRunner {
         log.info("Jumlah Warna {}", jumlahWarna);
 
         final String markerToReplace = "[{color: 0, frequency: 60}, {color: 128, frequency: 80}, {color: 172, frequency: 80}]";
-        final String histogramTpl = IOUtils.toString(PengenalanPolaApplication.class.getResource("/BarChart.html"));
+        final String histogramTpl = IOUtils.toString(HistogramApp.class.getResource("/BarChart.html"));
 
         //Red
         final String strR = histToJson(rImage);
