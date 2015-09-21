@@ -22,6 +22,7 @@ import java.io.File;
 public class HistogramApp implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(HistogramApp.class);
     static {
+    	log.info("java.library.path = {}", System.getProperty("java.library.path"));
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
 
