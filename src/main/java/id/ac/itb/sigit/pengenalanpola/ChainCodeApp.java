@@ -25,6 +25,10 @@ public class ChainCodeApp implements CommandLineRunner {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
 
+    public enum Direction {
+
+    }
+
     /**
      * variable
      */
@@ -488,7 +492,7 @@ public class ChainCodeApp implements CommandLineRunner {
             }
         } else {
             if (gray1 < toleransi) {
-                AreaObject(row, col);
+                areaObject(row, col);
                 return "1" + prosesChaincode(temprow, tempcol, 1, imgMat, mode);
             }
         }
@@ -509,7 +513,7 @@ public class ChainCodeApp implements CommandLineRunner {
             }
         } else {
             if (gray2 < toleransi) {
-                AreaObject(row, col);
+                areaObject(row, col);
                 return "2" + prosesChaincode(temprow, tempcol, 2, imgMat, mode);
             }
         }
@@ -530,7 +534,7 @@ public class ChainCodeApp implements CommandLineRunner {
             }
         } else {
             if (gray3 < toleransi) {
-                AreaObject(row, col);
+                areaObject(row, col);
                 return "3" + prosesChaincode(temprow, tempcol, 3, imgMat, mode);
             }
         }
@@ -552,7 +556,7 @@ public class ChainCodeApp implements CommandLineRunner {
             }
         } else {
             if (gray4 < toleransi) {
-                AreaObject(row, col);
+                areaObject(row, col);
                 return "4" + prosesChaincode(temprow, tempcol, 4, imgMat, mode);
             }
         }
@@ -574,7 +578,7 @@ public class ChainCodeApp implements CommandLineRunner {
             }
         } else {
             if (gray5 < toleransi) {
-                AreaObject(row, col);
+                areaObject(row, col);
                 return "5" + prosesChaincode(temprow, tempcol, 5, imgMat, mode);
             }
         }
@@ -596,7 +600,7 @@ public class ChainCodeApp implements CommandLineRunner {
             }
         } else {
             if (gray6 < toleransi) {
-                AreaObject(row, col);
+                areaObject(row, col);
                 return "6" + prosesChaincode(temprow, tempcol, 6, imgMat, mode);
             }
         }
@@ -618,7 +622,7 @@ public class ChainCodeApp implements CommandLineRunner {
             }
         } else {
             if (gray7 < toleransi) {
-                AreaObject(row, col);
+                areaObject(row, col);
                 return "7" + prosesChaincode(temprow, tempcol, 7, imgMat, mode);
             }
         }
@@ -640,7 +644,7 @@ public class ChainCodeApp implements CommandLineRunner {
             }
         } else {
             if (gray8 < toleransi) {
-                AreaObject(row, col);
+                areaObject(row, col);
                 return "8" + prosesChaincode(temprow, tempcol, 8, imgMat, mode);
             }
         }
@@ -648,7 +652,7 @@ public class ChainCodeApp implements CommandLineRunner {
         return "";
     }
 
-    private void AreaObject(int row, int col) {
+    private void areaObject(int row, int col) {
         if (minHor > col) {
             minHor = col;
         } else if (maxHor < col) {
