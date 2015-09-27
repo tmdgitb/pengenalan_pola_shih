@@ -9,6 +9,8 @@ import java.util.List;
 public class CharDef {
     private String character;
     private String chainCode;
+    private String dirChainCode;
+    private String relChainCode;
     private List<String> subChainCode=new ArrayList<>();
 
     public String getCharacter() {
@@ -31,5 +33,44 @@ public class CharDef {
         return subChainCode;
     }
 
+    public String getDirChainCode() {
+        return dirChainCode;
+    }
+
+    public String getRelChainCode() {
+        return relChainCode;
+    }
+
+    public void calcDirChainCode(){
+        dirChainCode = "";
+
+        for(int i=1; i < chainCode.length(); i++){
+            int a = Integer.parseInt(chainCode.charAt(i) + "");
+            int b = Integer.parseInt(chainCode.charAt(i - 1) + "");
+
+            if(a == b){
+
+            }else if(a < b){
+                dirChainCode = dirChainCode + "-";
+            }else{
+                dirChainCode = dirChainCode + "+";
+            }
+        }
+    }
+
+    public void calcRelChainCode(){
+        relChainCode = "";
+
+        for(int i=1; i < chainCode.length(); i++){
+            int a = Integer.parseInt(chainCode.charAt(i) + "");
+            int b = Integer.parseInt(chainCode.charAt(i - 1) + "");
+
+            if(a < b){
+                relChainCode = relChainCode + (a - b + 8);
+            }else{
+                relChainCode = relChainCode + (a - b);
+            }
+        }
+    }
 
 }
