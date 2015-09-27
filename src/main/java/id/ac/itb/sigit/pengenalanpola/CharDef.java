@@ -47,15 +47,21 @@ public class CharDef {
         for(int i=1; i < chainCode.length(); i++){
             int a = Integer.parseInt(chainCode.charAt(i) + "");
             int b = Integer.parseInt(chainCode.charAt(i - 1) + "");
+            int y, mod;
 
-            if(a == b){
+            if(a < b){ mod = 8; }
+            else{      mod = 0; }
 
-            }else if(a < b){
-                dirChainCode = dirChainCode + "-";
-            }else{
+            y = a - b + mod;
+
+            if(0 < y && y < 4){
                 dirChainCode = dirChainCode + "+";
+            }else if( y > 4){
+                dirChainCode = dirChainCode + "-";
             }
         }
+
+        Log.v("chaincode_dir", dirChainCode);
     }
 
     public void calcRelChainCode(){
@@ -64,15 +70,18 @@ public class CharDef {
         for(int i=1; i < chainCode.length(); i++){
             int a = Integer.parseInt(chainCode.charAt(i) + "");
             int b = Integer.parseInt(chainCode.charAt(i - 1) + "");
+            int mod;
 
             if(a == b){
 
-            }else if(a < b){
-                relChainCode = relChainCode + (a - b + 8);
             }else{
-                relChainCode = relChainCode + (a - b);
+                if(a < b){ mod = 8; }
+                else{      mod = 0; }
+                relChainCode = relChainCode + (a - b + mod);
             }
         }
+
+        Log.v("chaincode_rel", relChainCode);
     }
 
 }
