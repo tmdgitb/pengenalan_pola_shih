@@ -115,7 +115,9 @@ public class PlatNomorApp implements CommandLineRunner {
                 final String resampledPlat = ChainCode.resample(charPlat.getKodeBelok(), trainingCode.getKodeBelok().length());
                 final double confidence = ChainCode.match(resampledPlat, trainingCode.getKodeBelok());
                 if (confidence >= 0.6) {
-                    hasilPengenalan.add(new RecognizedSymbol(dataTraining.get(j).getCharacter(), charPlat,
+                    log.info("Matched {}% {}: actual={} training={}",
+                            Math.round(confidence * 100), trainingCode.getCharacter(), resampledPlat, trainingCode.getKodeBelok());
+                    hasilPengenalan.add(new RecognizedSymbol(trainingCode.getCharacter(), charPlat,
                             confidence));
                     break;
                 }

@@ -85,10 +85,17 @@ public class ChainCode {
                 "Actual is %s characters must match training of %s characters");
         int matchedCount = 0;
         for (int i = 0; i < actual.length(); i++) {
-            if (actual.charAt(i) == training.charAt(i)) {
-                matchedCount++;
+            int diff = Math.abs(actual.charAt(i) - training.charAt(i));
+            if (diff == 7) {
+                diff = 1;
+            }
+            // scoring
+            if (diff == 0) {
+                matchedCount += 10;
+            } else if (diff == 1) { // 50%
+                matchedCount += 5;
             }
         }
-        return matchedCount * 1.0 / actual.length();
+        return matchedCount / (actual.length() * 10.0);
     }
 }
