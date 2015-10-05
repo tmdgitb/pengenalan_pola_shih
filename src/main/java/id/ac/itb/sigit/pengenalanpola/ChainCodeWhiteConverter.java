@@ -695,7 +695,7 @@ public class ChainCodeWhiteConverter {
 
     private String getKodeBelok(String chainCode) {
         String kodeBelok = "";
-        String Temp = String.valueOf(chainCode.charAt(0));
+        String temp = String.valueOf(chainCode.charAt(0));
 
         char[] tempChar = new char[2];
         tempChar[0] = chainCode.charAt(0);
