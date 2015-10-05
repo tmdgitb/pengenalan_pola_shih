@@ -32,14 +32,41 @@ public class PlatNomorApp implements CommandLineRunner {
                 .run(args);
     }
 
+    public static class RecognizedSymbol {
+
+        private String name;
+        private ChainCode chainCode;
+
+        public RecognizedSymbol(String name, ChainCode chainCode) {
+            this.name = name;
+            this.chainCode = chainCode;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public ChainCode getChainCode() {
+            return chainCode;
+        }
+
+        public void setChainCode(ChainCode chainCode) {
+            this.chainCode = chainCode;
+        }
+    }
+
     @Override
     public void run(String... args) throws Exception {
 
-        List<String> hasilPengenalan=new ArrayList<>();
+        List<RecognizedSymbol> hasilPengenalan = new ArrayList<>();
 
         //===================================Data Training======================================//
-        List<ChainCode> dataTraining=new ArrayList<>();
-        List<String> stringTraining=new ArrayList<>();//B 14 IA -- 04.16
+        List<ChainCode> dataTraining = new ArrayList<>();
+        List<String> stringTraining = new ArrayList<>();//B 14 IA -- 04.16
         stringTraining.add("platB.jpg");
         stringTraining.add("plat1.jpg");
         stringTraining.add("plat4.jpg");
@@ -48,13 +75,12 @@ public class PlatNomorApp implements CommandLineRunner {
         stringTraining.add("platTgl0.jpg");
         stringTraining.add("platTgl6.jpg");
 
-        for(int i=0;i<stringTraining.size();i++)
-        {
+        for (int i = 0; i < stringTraining.size(); i++) {
             final File imageFile = new File(stringTraining.get(i));
             log.info("Processing image file '{}' ...", imageFile);
             final Mat imgMat = Highgui.imread(imageFile.getPath(), Highgui.CV_LOAD_IMAGE_GRAYSCALE);
             log.info("Image mat: rows={} cols={}", imgMat.rows(), imgMat.cols());
-            ChainCodeWhiteConverter chainCodeWhiteConverter=new ChainCodeWhiteConverter(imgMat,"plat");
+            ChainCodeWhiteConverter chainCodeWhiteConverter = new ChainCodeWhiteConverter(imgMat, "plat");
             List<ChainCode> data = chainCodeWhiteConverter.getChainCode();
             data.get(0).setCharacter(stringTraining.get(i));
             dataTraining.add(data.get(0));
@@ -66,31 +92,27 @@ public class PlatNomorApp implements CommandLineRunner {
         log.info("Processing image file '{}' ...", imageFile);
         final Mat imgMat = Highgui.imread(imageFile.getPath(), Highgui.CV_LOAD_IMAGE_GRAYSCALE);
         log.info("Image mat: rows={} cols={}", imgMat.rows(), imgMat.cols());
-        ChainCodeWhiteConverter chainCodeWhiteConverter=new ChainCodeWhiteConverter(imgMat,"plat");
+        ChainCodeWhiteConverter chainCodeWhiteConverter = new ChainCodeWhiteConverter(imgMat, "plat");
         List<ChainCode> dataPlat = chainCodeWhiteConverter.getChainCode();
 
         //===================================Cek Data======================================//
 
-        for (int i=0;i<dataPlat.size();i++)
-        {
-            ChainCode charPlat=dataPlat.get(i);
+        for (int i = 0; i < dataPlat.size(); i++) {
+            final ChainCode charPlat = dataPlat.get(i);
 
-            for(int j=0;j<dataTraining.size();j++)
-            {
-                if( charPlat.getKodeBelok().equals(dataTraining.get(j).getKodeBelok()))
-                {
-                    hasilPengenalan.add(dataTraining.get(j).getCharacter());
+            for (int j = 0; j < dataTraining.size(); j++) {
+                if (charPlat.getKodeBelok().equals(dataTraining.get(j).getKodeBelok())) {
+                    hasilPengenalan.add(new RecognizedSymbol(dataTraining.get(j).getCharacter(), charPlat));
                     break;
                 }
             }
         }
 
-
-        for(int i=0;i<hasilPengenalan.size(); i++) {
-
-            log.info(hasilPengenalan.get(i));
+        for (int i = 0; i < hasilPengenalan.size(); i++) {
+            final RecognizedSymbol recognized = hasilPengenalan.get(i);
+            log.info("Found #{} at ({},{}): {}",
+                    i, recognized.getChainCode().getX(), recognized.getChainCode().getY(), recognized.getName());
         }
-
 
     }
 }

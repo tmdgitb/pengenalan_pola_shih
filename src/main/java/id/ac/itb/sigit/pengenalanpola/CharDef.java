@@ -11,7 +11,7 @@ public class CharDef {
     private String chainCode;
     private String dirChainCode;
     private String relChainCode;
-    private List<String> subChainCode=new ArrayList<>();
+    private List<String> subChainCode = new ArrayList<>();
 
     public String getCharacter() {
         return character;
@@ -41,22 +41,25 @@ public class CharDef {
         return relChainCode;
     }
 
-    public void calcDirChainCode(){
+    public void calcDirChainCode() {
         dirChainCode = "";
 
-        for(int i=1; i < chainCode.length(); i++){
+        for (int i = 1; i < chainCode.length(); i++) {
             int a = Integer.parseInt(chainCode.charAt(i) + "");
             int b = Integer.parseInt(chainCode.charAt(i - 1) + "");
             int y, mod;
 
-            if(a < b){ mod = 8; }
-            else{      mod = 0; }
+            if (a < b) {
+                mod = 8;
+            } else {
+                mod = 0;
+            }
 
             y = a - b + mod;
 
-            if(0 < y && y < 4){
+            if (0 < y && y < 4) {
                 dirChainCode = dirChainCode + "+";
-            }else if( y > 4){
+            } else if (y > 4) {
                 dirChainCode = dirChainCode + "-";
             }
         }
@@ -64,19 +67,22 @@ public class CharDef {
         //Log.v("chaincode_dir", dirChainCode);
     }
 
-    public void calcRelChainCode(){
+    public void calcRelChainCode() {
         relChainCode = "";
 
-        for(int i=1; i < chainCode.length(); i++){
+        for (int i = 1; i < chainCode.length(); i++) {
             int a = Integer.parseInt(chainCode.charAt(i) + "");
             int b = Integer.parseInt(chainCode.charAt(i - 1) + "");
             int mod;
 
-            if(a == b){
+            if (a == b) {
 
-            }else{
-                if(a < b){ mod = 8; }
-                else{      mod = 0; }
+            } else {
+                if (a < b) {
+                    mod = 8;
+                } else {
+                    mod = 0;
+                }
                 relChainCode = relChainCode + (a - b + mod);
             }
         }

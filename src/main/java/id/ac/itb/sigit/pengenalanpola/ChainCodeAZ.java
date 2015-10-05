@@ -39,22 +39,20 @@ public class ChainCodeAZ implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        for (char ch=33; ch<=126;ch++)
-        {
+        for (char ch = 33; ch <= 126; ch++) {
             if (ch == '!' || ch == '"' || ch == '%' || ch == ':' || ch == ';' || ch == '=' || ch == '?') { // skip multi-chaincode for now
                 continue;
             }
 
-            try{
-                if(ch==106)
-                {
-                    int i=0;
+            try {
+                if (ch == 106) {
+                    int i = 0;
                 }
-                System.loadLibrary( Core.NATIVE_LIBRARY_NAME );
+                System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
                 Size textsize = Core.getTextSize(String.valueOf(ch), fontFace, fontScale, thickness, baseline);
-                int heightImg=(int)textsize.height;
-                int widthImg=(int)textsize.width;
-                Mat source = new Mat(heightImg*2,widthImg*2, CvType.CV_8UC1, new Scalar(250));
+                int heightImg = (int) textsize.height;
+                int widthImg = (int) textsize.width;
+                Mat source = new Mat(heightImg * 2, widthImg * 2, CvType.CV_8UC1, new Scalar(250));
                 Core.putText(source, String.valueOf(ch), new Point(20, heightImg + (heightImg / 2)), fontFace, fontScale, new Scalar(0), thickness);
                 final String filename = "character/" + String.valueOf(ch) + ".png";
                 log.info("Writing {} {} ...", filename, source);
@@ -74,9 +72,8 @@ public class ChainCodeAZ implements CommandLineRunner {
         mapper.writeValue(charDefsFile, charDefs);
     }
 
-    private void prosesChainCode(Mat img,String msg)
-    {
-        ChainCodeConverter chainCodeConverter=new ChainCodeConverter(img,msg);
+    private void prosesChainCode(Mat img, String msg) {
+        ChainCodeConverter chainCodeConverter = new ChainCodeConverter(img, msg);
         charDefs.add(chainCodeConverter.getChainCode());
     }
 }

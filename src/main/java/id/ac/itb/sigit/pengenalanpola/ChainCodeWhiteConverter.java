@@ -20,31 +20,25 @@ public class ChainCodeWhiteConverter {
     public List<ChainCode> chainCodes;
 
     /**
-     *
      * @param data MUST BE GRAYSCALE
      */
-    public ChainCodeWhiteConverter(Mat data)
-    {
+    public ChainCodeWhiteConverter(Mat data) {
         this(data, "");
     }
 
     /**
-     *
      * @param data MUST BE GRAYSCALE
      * @param msg
      */
-    public ChainCodeWhiteConverter(Mat data, String msg)
-    {
-        imgMat=data;
-        chainCodes=new ArrayList<>();
+    public ChainCodeWhiteConverter(Mat data, String msg) {
+        imgMat = data;
+        chainCodes = new ArrayList<>();
     }
 
-    public List<ChainCode> getChainCode()
-    {
+    public List<ChainCode> getChainCode() {
         byte[] imagByte = new byte[1];
         flag = new boolean[imgMat.rows()][imgMat.cols()];
         int objectIdx = 0;
-
 
         for (int y = 0; y < imgMat.rows(); y++) {
             Mat scanline = imgMat.row(y);
@@ -59,16 +53,18 @@ public class ChainCodeWhiteConverter {
                     minHor = x;
                     maxHor = x;
                     String chaincode = prosesChaincode(y, x, 3, imgMat, 1);
-                    ChainCode chainCode=new ChainCode();
-                    String kodeBelok=getKodeBelok(chaincode);
+                    ChainCode chainCode = new ChainCode();
+                    String kodeBelok = getKodeBelok(chaincode);
                     chainCode.setChainCode(chaincode);
                     chainCode.setKodeBelok(kodeBelok);
+                    chainCode.setX(x);
+                    chainCode.setY(y);
 
                     if (chaincode.length() > 20) {
                         log.info("Chaincode object #{} at ({}, {}): {}", objectIdx, x, y, chaincode);
                         objectIdx++;
                         List<ChainCode> subChainCodes = subObject(imgMat);
-                        if(subChainCodes.size()>0) {
+                        if (subChainCodes.size() > 0) {
                             chainCode.getSubChainCode().addAll(subChainCodes);
                         }
                         chainCodes.add(chainCode);
@@ -89,12 +85,12 @@ public class ChainCodeWhiteConverter {
             }
         }
 
-        return  chainCodes;
+        return chainCodes;
     }
 
     private List<ChainCode> subObject(Mat imgMat) {
 
-        List<ChainCode> subChainCodes=new ArrayList<>();
+        List<ChainCode> subChainCodes = new ArrayList<>();
 
         byte[] imagByte = new byte[1];
 
@@ -118,7 +114,7 @@ public class ChainCodeWhiteConverter {
                     scanline.get(0, x + 1, imagByte);
                     String chaincode2 = prosesChaincode(y, x, 3, imgMat, 0);
 
-                    ChainCode subChainCode=new ChainCode();
+                    ChainCode subChainCode = new ChainCode();
                     subChainCode.setChainCode(chaincode2);
                     subChainCodes.add(subChainCode);
 
@@ -697,53 +693,45 @@ public class ChainCodeWhiteConverter {
         }
     }
 
-    private String getKodeBelok(String chainCode)
-    {
-        String kodeBelok="";
+    private String getKodeBelok(String chainCode) {
+        String kodeBelok = "";
         String Temp = String.valueOf(chainCode.charAt(0));
 
-        char[] tempChar=new char[2];
-        tempChar[0]=chainCode.charAt(0);
-        tempChar[1]=chainCode.charAt(0);
-        kodeBelok +=chainCode.charAt(0);
-        boolean rep=false;
+        char[] tempChar = new char[2];
+        tempChar[0] = chainCode.charAt(0);
+        tempChar[1] = chainCode.charAt(0);
+        kodeBelok += chainCode.charAt(0);
+        boolean rep = false;
 
-        for(int i=0;i<chainCode.length()-1;i++)
-        {
-            if(i==105)
-            {
-                char f=chainCode.charAt(i);
+        for (int i = 0; i < chainCode.length() - 1; i++) {
+            if (i == 105) {
+                char f = chainCode.charAt(i);
             }
-            char ff=chainCode.charAt(i);
-            if(tempChar[0]!=chainCode.charAt(i))
-            {
-                if(tempChar[1]!=chainCode.charAt(i)) {
-                    tempChar[0]=tempChar[1];
-                    tempChar[1]=chainCode.charAt(i);
+            char ff = chainCode.charAt(i);
+            if (tempChar[0] != chainCode.charAt(i)) {
+                if (tempChar[1] != chainCode.charAt(i)) {
+                    tempChar[0] = tempChar[1];
+                    tempChar[1] = chainCode.charAt(i);
                     kodeBelok += chainCode.charAt(i);
-                }
-                else
-                {
-                    tempChar[0]=tempChar[1];
-                    tempChar[1]=chainCode.charAt(i);
+                } else {
+                    tempChar[0] = tempChar[1];
+                    tempChar[1] = chainCode.charAt(i);
                 }
 
-            }
-            else
-            {
-                if(tempChar[1]==chainCode.charAt(i+1) && tempChar[0]!=tempChar[1]) {
+            } else {
+                if (tempChar[1] == chainCode.charAt(i + 1) && tempChar[0] != tempChar[1]) {
                     i++;
-                } else if(tempChar[1]==chainCode.charAt(i+1)) {
+                } else if (tempChar[1] == chainCode.charAt(i + 1)) {
 
                 } else {
-                    tempChar[0]=tempChar[1];
-                    tempChar[1]=chainCode.charAt(i+1);
-                    kodeBelok += chainCode.charAt(i+1);
+                    tempChar[0] = tempChar[1];
+                    tempChar[1] = chainCode.charAt(i + 1);
+                    kodeBelok += chainCode.charAt(i + 1);
                     i++;
                 }
             }
         }
-        return  kodeBelok;
+        return kodeBelok;
     }
 
 }

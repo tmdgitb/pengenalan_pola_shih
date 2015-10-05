@@ -15,31 +15,26 @@ public class ChainCodeConverter {
     private boolean searchObject = true, searchSubObject = false;
     private int minHor = 0, maxHor = 0, minVer = 0, maxVer = 0;
     private Mat imgMat;
-    private  CharDef charDef;
+    private CharDef charDef;
 
     /**
-     *
      * @param data MUST BE GRAYSCALE
      */
-    public ChainCodeConverter(Mat data)
-    {
+    public ChainCodeConverter(Mat data) {
         this(data, "");
     }
 
     /**
-     *
      * @param data MUST BE GRAYSCALE
      * @param msg
      */
-    public ChainCodeConverter(Mat data, String msg)
-    {
-        imgMat=data;
-        charDef=new CharDef();
+    public ChainCodeConverter(Mat data, String msg) {
+        imgMat = data;
+        charDef = new CharDef();
         charDef.setCharacter(msg);
     }
 
-    public CharDef getChainCode()
-    {
+    public CharDef getChainCode() {
         byte[] imagByte = new byte[1];
         flag = new boolean[imgMat.rows()][imgMat.cols()];
         int objectIdx = 0;
@@ -81,7 +76,7 @@ public class ChainCodeConverter {
             }
         }
 
-        return  charDef;
+        return charDef;
     }
 
     private void subObject(Mat imgMat) {

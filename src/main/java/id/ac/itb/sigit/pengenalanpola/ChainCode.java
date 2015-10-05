@@ -10,7 +10,9 @@ public class ChainCode {
     private String character;
     private String chainCode;
     private String kodeBelok;
-    private List<ChainCode> subChainCode=new ArrayList<>();
+    private List<ChainCode> subChainCode = new ArrayList<>();
+    private Integer x;
+    private Integer y;
 
     public String getCharacter() {
         return character;
@@ -38,5 +40,21 @@ public class ChainCode {
 
     public List<ChainCode> getSubChainCode() {
         return subChainCode;
+    }
+
+    public Integer getX() {
+        return x;
+    }
+
+    public void setX(Integer x) {
+        this.x = x;
+    }
+
+    public Integer getY() {
+        return y;
+    }
+
+    public void setY(Integer y) {
+        this.y = y;
     }
 }
