@@ -61,7 +61,7 @@ public class CharDef {
             }
         }
 
-        Log.v("chaincode_dir", dirChainCode);
+        //Log.v("chaincode_dir", dirChainCode);
     }
 
     public void calcRelChainCode(){
@@ -81,7 +81,7 @@ public class CharDef {
             }
         }
 
-        Log.v("chaincode_rel", relChainCode);
+        //Log.v("chaincode_rel", relChainCode);
     }
 
 }

@@ -1,5 +1,6 @@
 package id.ac.itb.sigit.pengenalanpola;
 
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.highgui.Highgui;
 import org.slf4j.Logger;
@@ -22,6 +23,9 @@ public class PlatNomorApp implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(PlatNomorApp.class);
 
+    static {
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    }
 
     public static void main(String[] args) {
         new SpringApplicationBuilder(PlatNomorApp.class).profiles("platnomorapp")
@@ -75,12 +79,17 @@ public class PlatNomorApp implements CommandLineRunner {
             {
                 if( charPlat.getKodeBelok().equals(dataTraining.get(j).getKodeBelok()))
                 {
-                    hasilPengenalan.add(charPlat.getCharacter());
+                    hasilPengenalan.add(dataTraining.get(j).getCharacter());
                     break;
                 }
             }
         }
 
+
+        for(int i=0;i<hasilPengenalan.size(); i++) {
+
+            log.info(hasilPengenalan.get(i));
+        }
 
 
     }
