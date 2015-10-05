@@ -36,10 +36,12 @@ public class PlatNomorApp implements CommandLineRunner {
 
         private String name;
         private ChainCode chainCode;
+        private double confidence;
 
-        public RecognizedSymbol(String name, ChainCode chainCode) {
+        public RecognizedSymbol(String name, ChainCode chainCode, double confidence) {
             this.name = name;
             this.chainCode = chainCode;
+            this.confidence = confidence;
         }
 
         public String getName() {
@@ -56,6 +58,14 @@ public class PlatNomorApp implements CommandLineRunner {
 
         public void setChainCode(ChainCode chainCode) {
             this.chainCode = chainCode;
+        }
+
+        public double getConfidence() {
+            return confidence;
+        }
+
+        public void setConfidence(double confidence) {
+            this.confidence = confidence;
         }
     }
 
@@ -101,8 +111,12 @@ public class PlatNomorApp implements CommandLineRunner {
             final ChainCode charPlat = dataPlat.get(i);
 
             for (int j = 0; j < dataTraining.size(); j++) {
-                if (charPlat.getKodeBelok().equals(dataTraining.get(j).getKodeBelok())) {
-                    hasilPengenalan.add(new RecognizedSymbol(dataTraining.get(j).getCharacter(), charPlat));
+                final ChainCode trainingCode = dataTraining.get(j);
+                final String resampledPlat = ChainCode.resample(charPlat.getKodeBelok(), trainingCode.getKodeBelok().length());
+                final double confidence = ChainCode.match(resampledPlat, trainingCode.getKodeBelok());
+                if (confidence >= 0.6) {
+                    hasilPengenalan.add(new RecognizedSymbol(dataTraining.get(j).getCharacter(), charPlat,
+                            confidence));
                     break;
                 }
             }
@@ -110,8 +124,9 @@ public class PlatNomorApp implements CommandLineRunner {
 
         for (int i = 0; i < hasilPengenalan.size(); i++) {
             final RecognizedSymbol recognized = hasilPengenalan.get(i);
-            log.info("Found #{} at ({},{}): {}",
-                    i, recognized.getChainCode().getX(), recognized.getChainCode().getY(), recognized.getName());
+            log.info("Found #{} {}% at ({},{}): {}",
+                    i, Math.round(recognized.getConfidence() * 100),
+                    recognized.getChainCode().getX(), recognized.getChainCode().getY(), recognized.getName());
         }
 
     }
