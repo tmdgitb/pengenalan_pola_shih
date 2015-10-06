@@ -2,9 +2,9 @@ package id.ac.itb.sigit.pengenalanpola;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.opencv.core.*;
-import org.opencv.core.Point;
-import org.opencv.highgui.Highgui;
+import org.bytedeco.javacpp.indexer.ByteIndexer;
+import org.bytedeco.javacpp.opencv_core;
+import org.bytedeco.javacpp.opencv_highgui;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -26,7 +26,7 @@ public class ChainCodeAZ implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(ChainCodeAZ.class);
 
-    int fontFace = Core.FONT_HERSHEY_PLAIN;
+    int fontFace = opencv_core.FONT_HERSHEY_PLAIN;
     double fontScale = 20;
     int thickness = 10;
     int[] baseline = {0};
@@ -48,15 +48,15 @@ public class ChainCodeAZ implements CommandLineRunner {
                 if (ch == 106) {
                     int i = 0;
                 }
-                System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-                Size textsize = Core.getTextSize(String.valueOf(ch), fontFace, fontScale, thickness, baseline);
-                int heightImg = (int) textsize.height;
-                int widthImg = (int) textsize.width;
-                Mat source = new Mat(heightImg * 2, widthImg * 2, CvType.CV_8UC1, new Scalar(250));
-                Core.putText(source, String.valueOf(ch), new Point(20, heightImg + (heightImg / 2)), fontFace, fontScale, new Scalar(0), thickness);
+                //System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+                opencv_core.Size textsize = opencv_core.getTextSize(String.valueOf(ch), fontFace, fontScale, thickness, baseline);
+                int heightImg = (int) textsize.height();
+                int widthImg = (int) textsize.width();
+                opencv_core.Mat source = new opencv_core.Mat(heightImg * 2, widthImg * 2, opencv_core.CV_8UC1, new opencv_core.Scalar(250));
+                //FIXME: opencv_core.putText(source, String.valueOf(ch), new opencv_core.Point(20, heightImg + (heightImg / 2)), fontFace, fontScale, new opencv_core.Scalar(0), thickness);
                 final String filename = "character/" + String.valueOf(ch) + ".png";
                 log.info("Writing {} {} ...", filename, source);
-                Highgui.imwrite(filename, source);
+                opencv_highgui.imwrite(filename, source);
 
                 prosesChainCode(source, String.valueOf(ch));
             } catch (Exception e) {
@@ -72,8 +72,13 @@ public class ChainCodeAZ implements CommandLineRunner {
         mapper.writeValue(charDefsFile, charDefs);
     }
 
-    private void prosesChainCode(Mat img, String msg) {
-        ChainCodeConverter chainCodeConverter = new ChainCodeConverter(img, msg);
-        charDefs.add(chainCodeConverter.getChainCode());
+    private void prosesChainCode(opencv_core.Mat img, String msg) {
+        final ByteIndexer idx = img.createIndexer();
+        try {
+            ChainCodeConverter chainCodeConverter = new ChainCodeConverter(img, idx, msg);
+            charDefs.add(chainCodeConverter.getChainCode());
+        } finally {
+            idx.release();
+        }
     }
 }

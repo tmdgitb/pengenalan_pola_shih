@@ -1,6 +1,9 @@
 package id.ac.itb.sigit.pengenalanpola;
 
-import org.opencv.core.Mat;
+import org.bytedeco.javacpp.indexer.ByteIndexer;
+import org.bytedeco.javacpp.indexer.ByteIndexer;
+import org.bytedeco.javacpp.indexer.ByteIndexer;
+import org.bytedeco.javacpp.opencv_core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,13 +19,13 @@ public class ChainCodeWhiteConverter {
     private int toleransiWhite = 230, toleransi = 150;
     private boolean searchObject = true, searchSubObject = false;
     private int minHor = 0, maxHor = 0, minVer = 0, maxVer = 0;
-    private Mat imgMat;
+    private opencv_core.Mat imgMat;
     public List<ChainCode> chainCodes;
 
     /**
      * @param data MUST BE GRAYSCALE
      */
-    public ChainCodeWhiteConverter(Mat data) {
+    public ChainCodeWhiteConverter(opencv_core.Mat data) {
         this(data, "");
     }
 
@@ -30,24 +33,22 @@ public class ChainCodeWhiteConverter {
      * @param data MUST BE GRAYSCALE
      * @param msg
      */
-    public ChainCodeWhiteConverter(Mat data, String msg) {
+    public ChainCodeWhiteConverter(opencv_core.Mat data, String msg) {
         imgMat = data;
         chainCodes = new ArrayList<>();
     }
 
     public List<ChainCode> getChainCode() {
-        byte[] imagByte = new byte[1];
         flag = new boolean[imgMat.rows()][imgMat.cols()];
         int objectIdx = 0;
 
+        final ByteIndexer imgIdx = imgMat.createIndexer();
+
         for (int y = 0; y < imgMat.rows(); y++) {
-            Mat scanline = imgMat.row(y);
             for (int x = 0; x < imgMat.cols(); x++) {
-                scanline.get(0, x, imagByte);
-                int grayScale = grayScale(imagByte);
+                int grayScale = Byte.toUnsignedInt(imgIdx.get(y, x));
 
                 if (grayScale > toleransiWhite && searchObject && !flag[y][x]) {
-
                     minVer = y;
                     maxVer = y;
                     minHor = x;
@@ -73,8 +74,7 @@ public class ChainCodeWhiteConverter {
                 }
 
                 if (grayScale > toleransiWhite && flag[y][x]) {
-                    scanline.get(0, x + 1, imagByte);
-                    int grayScale1 = grayScale(imagByte);
+                    int grayScale1 = Byte.toUnsignedInt(imgIdx.get(y, x + 1));
 
                     if (grayScale1 < toleransiWhite) {
                         searchObject = true;
@@ -88,415 +88,418 @@ public class ChainCodeWhiteConverter {
         return chainCodes;
     }
 
-    private List<ChainCode> subObject(Mat imgMat) {
-
+    private List<ChainCode> subObject(opencv_core.Mat imgMat) {
         List<ChainCode> subChainCodes = new ArrayList<>();
 
-        byte[] imagByte = new byte[1];
+        final ByteIndexer imgIdx = imgMat.createIndexer();
+        try {
+            for (int y = minVer; y <= maxVer; y++) {
+                for (int x = minHor; x <= maxHor; x++) {
+                    final int grayScale = Byte.toUnsignedInt(imgIdx.get(y, x));
+                    final int nextGrayScale = Byte.toUnsignedInt(imgIdx.get(y, x + 1));
+                    if (grayScale > toleransiWhite && flag[y][x]) {
+                        if (nextGrayScale > toleransiWhite) {
+                            searchSubObject = true;
+                        } else {
+                            searchSubObject = false;
+                        }
+                    }
 
-        for (int y = minVer; y <= maxVer; y++) {
-            Mat scanline = imgMat.row(y);
-            for (int x = minHor; x <= maxHor; x++) {
-                scanline.get(0, x, imagByte);
-                int grayScale = grayScale(imagByte);
+                    if (grayScale < toleransi && searchSubObject && !flag[y][x]) {
+                        String chaincode2 = prosesChaincode(y, x, 3, imgMat, 0);
 
-                scanline.get(0, x + 1, imagByte);
-                int nextGrayScale = grayScale(imagByte);
-                if (grayScale > toleransiWhite && flag[y][x]) {
-                    if (nextGrayScale > toleransiWhite) {
-                        searchSubObject = true;
-                    } else {
+                        ChainCode subChainCode = new ChainCode();
+                        subChainCode.setChainCode(chaincode2);
+                        subChainCodes.add(subChainCode);
+
+                        //charDef.getSubChainCode().add(chaincode2);
+                        log.info("Chaincode subobject : {}", chaincode2);
                         searchSubObject = false;
                     }
-                }
 
-                if (grayScale < toleransi && searchSubObject && !flag[y][x]) {
-                    scanline.get(0, x + 1, imagByte);
-                    String chaincode2 = prosesChaincode(y, x, 3, imgMat, 0);
-
-                    ChainCode subChainCode = new ChainCode();
-                    subChainCode.setChainCode(chaincode2);
-                    subChainCodes.add(subChainCode);
-
-                    //charDef.getSubChainCode().add(chaincode2);
-                    log.info("Chaincode subobject : {}", chaincode2);
-                    searchSubObject = false;
-                }
-
-                if (grayScale < toleransi && flag[y][x]) {
-                    if (nextGrayScale > toleransi) {
-                        searchSubObject = true;
-                    } else {
-                        searchSubObject = false;
+                    if (grayScale < toleransi && flag[y][x]) {
+                        if (nextGrayScale > toleransi) {
+                            searchSubObject = true;
+                        } else {
+                            searchSubObject = false;
+                        }
                     }
                 }
             }
+        } finally {
+            imgIdx.release();
         }
 
         return subChainCodes;
     }
 
-    private String prosesChaincode(int row, int col, int arah, Mat imgMat, int mode) {
+    private String prosesChaincode(int row, int col, int arah, opencv_core.Mat imgMat, int mode) {
         if (flag[row][col]) {
             return "";
         }
         flag[row][col] = true;
 
-        //kondisi perjalanan arah 1
-        if (arah == 1) {
-            //
-            //cek arah 7 (samping kiri)
-            //
-            String arah7 = objectarah7(row, col, imgMat, mode);
-            if (arah7 != "") {
-                return arah7;
-            }
-            //
-            //cek arah 8
-            //
-            String arah8 = objectarah8(row, col, imgMat, mode);
-            if (arah8 != "") {
-                return arah8;
-            }
+        final ByteIndexer imgIdx = imgMat.createIndexer();
+        try {
 
-            //
-            //cek arah 1 (depan)
-            //
-            String arah1 = objectarah1(row, col, imgMat, mode);
-            if (arah1 != "") {
-                return arah1;
+            //kondisi perjalanan arah 1
+            if (arah == 1) {
+                //
+                //cek arah 7 (samping kiri)
+                //
+                String arah7 = objectarah7(row, col, imgMat, imgIdx, mode);
+                if (arah7 != "") {
+                    return arah7;
+                }
+                //
+                //cek arah 8
+                //
+                String arah8 = objectarah8(row, col, imgMat, imgIdx, mode);
+                if (arah8 != "") {
+                    return arah8;
+                }
+
+                //
+                //cek arah 1 (depan)
+                //
+                String arah1 = objectarah1(row, col, imgMat, imgIdx, mode);
+                if (arah1 != "") {
+                    return arah1;
+                }
+
+                //
+                //cek arah 2
+                //
+                String arah2 = objectarah2(row, col, imgMat, imgIdx, mode);
+                if (arah2 != "") {
+                    return arah2;
+                }
+
+
+                //
+                //cek arah 3
+                //
+                String arah3 = objectarah3(row, col, imgMat, imgIdx, mode);
+                if (arah3 != "") {
+                    return arah3;
+                }
+
             }
+            //kondisi perjalanan arah 2
+            else if (arah == 2) {
+                //
+                //cek arah 8 (samping kiri)
+                //
+                String arah8 = objectarah8(row, col, imgMat, imgIdx, mode);
+                if (arah8 != "") {
+                    return arah8;
+                }
 
-            //
-            //cek arah 2
-            //
-            String arah2 = objectarah2(row, col, imgMat, mode);
-            if (arah2 != "") {
-                return arah2;
+                //
+                //cek arah 1 (depan)
+                //
+                String arah1 = objectarah1(row, col, imgMat, imgIdx, mode);
+                if (arah1 != "") {
+                    return arah1;
+                }
+
+                //
+                //cek arah 2
+                //
+                String arah2 = objectarah2(row, col, imgMat, imgIdx, mode);
+                if (arah2 != "") {
+                    return arah2;
+                }
+
+
+                //
+                //cek arah 3
+                //
+                String arah3 = objectarah3(row, col, imgMat, imgIdx, mode);
+                if (arah3 != "") {
+                    return arah3;
+                }
+
+                //
+                //cek arah 4
+                //
+                String arah4 = objectarah4(row, col, imgMat, imgIdx, mode);
+                if (arah4 != "") {
+                    return arah4;
+                }
+
+            } else if (arah == 3) {
+                //
+                //cek arah 1 (depan)
+                //
+                String arah1 = objectarah1(row, col, imgMat, imgIdx, mode);
+                if (arah1 != "") {
+                    return arah1;
+                }
+
+                //
+                //cek arah 2
+                //
+                String arah2 = objectarah2(row, col, imgMat, imgIdx, mode);
+                if (arah2 != "") {
+                    return arah2;
+                }
+
+
+                //
+                //cek arah 3
+                //
+                String arah3 = objectarah3(row, col, imgMat, imgIdx, mode);
+                if (arah3 != "") {
+                    return arah3;
+                }
+
+                //
+                //cek arah 4
+                //
+                String arah4 = objectarah4(row, col, imgMat, imgIdx, mode);
+                if (arah4 != "") {
+                    return arah4;
+                }
+
+                //
+                //cek arah 5
+                //
+                String arah5 = objectarah5(row, col, imgMat, imgIdx, mode);
+                if (arah5 != "") {
+                    return arah5;
+                }
+            } else if (arah == 4) {
+                //
+                //cek arah 2
+                //
+                String arah2 = objectarah2(row, col, imgMat, imgIdx, mode);
+                if (arah2 != "") {
+                    return arah2;
+                }
+
+
+                //
+                //cek arah 3
+                //
+                String arah3 = objectarah3(row, col, imgMat, imgIdx, mode);
+                if (arah3 != "") {
+                    return arah3;
+                }
+
+                //
+                //cek arah 4
+                //
+                String arah4 = objectarah4(row, col, imgMat, imgIdx, mode);
+                if (arah4 != "") {
+                    return arah4;
+                }
+
+                //
+                //cek arah 5
+                //
+                String arah5 = objectarah5(row, col, imgMat, imgIdx, mode);
+                if (arah5 != "") {
+                    return arah5;
+                }
+
+                //
+                //cek arah 6
+                //
+                String arah6 = objectarah6(row, col, imgMat, imgIdx, mode);
+                if (arah6 != "") {
+                    return arah6;
+                }
+
+                //
+                //cek arah 7
+                //
+                String arah7 = objectarah7(row, col, imgMat, imgIdx, mode);
+                if (arah7 != "") {
+                    return arah7;
+                }
+            } else if (arah == 5) {
+                //
+                //cek arah 3
+                //
+                String arah3 = objectarah3(row, col, imgMat, imgIdx, mode);
+                if (arah3 != "") {
+                    return arah3;
+                }
+
+                //
+                //cek arah 4
+                //
+                String arah4 = objectarah4(row, col, imgMat, imgIdx, mode);
+                if (arah4 != "") {
+                    return arah4;
+                }
+
+                //
+                //cek arah 5
+                //
+                String arah5 = objectarah5(row, col, imgMat, imgIdx, mode);
+                if (arah5 != "") {
+                    return arah5;
+                }
+
+                //
+                //cek arah 6
+                //
+                String arah6 = objectarah6(row, col, imgMat, imgIdx, mode);
+                if (arah6 != "") {
+                    return arah6;
+                }
+
+                //
+                //cek arah 7
+                //
+                String arah7 = objectarah7(row, col, imgMat, imgIdx, mode);
+                if (arah7 != "") {
+                    return arah7;
+                }
+            } else if (arah == 6) {
+                //
+                //cek arah 4
+                //
+                String arah4 = objectarah4(row, col, imgMat, imgIdx, mode);
+                if (arah4 != "") {
+                    return arah4;
+                }
+
+                //
+                //cek arah 5
+                //
+                String arah5 = objectarah5(row, col, imgMat, imgIdx, mode);
+                if (arah5 != "") {
+                    return arah5;
+                }
+
+                //
+                //cek arah 6
+                //
+                String arah6 = objectarah6(row, col, imgMat, imgIdx, mode);
+                if (arah6 != "") {
+                    return arah6;
+                }
+
+                //
+                //cek arah 7
+                //
+                String arah7 = objectarah7(row, col, imgMat, imgIdx, mode);
+                if (arah7 != "") {
+                    return arah7;
+                }
+
+                //
+                //cek arah 8
+                //
+                String arah8 = objectarah8(row, col, imgMat, imgIdx, mode);
+                if (arah8 != "") {
+                    return arah8;
+                }
+
+                //
+                //cek arah 1 (depan)
+                //
+                String arah1 = objectarah1(row, col, imgMat, imgIdx, mode);
+                if (arah1 != "") {
+                    return arah1;
+                }
+            } else if (arah == 7) {
+                //
+                //cek arah 5
+                //
+                String arah5 = objectarah5(row, col, imgMat, imgIdx, mode);
+                if (arah5 != "") {
+                    return arah5;
+                }
+
+                //
+                //cek arah 6
+                //
+                String arah6 = objectarah6(row, col, imgMat, imgIdx, mode);
+                if (arah6 != "") {
+                    return arah6;
+                }
+
+                //
+                //cek arah 7
+                //
+                String arah7 = objectarah7(row, col, imgMat, imgIdx, mode);
+                if (arah7 != "") {
+                    return arah7;
+                }
+
+                //
+                //cek arah 8
+                //
+                String arah8 = objectarah8(row, col, imgMat, imgIdx, mode);
+                if (arah8 != "") {
+                    return arah8;
+                }
+
+                //
+                //cek arah 1 (depan)
+                //
+                String arah1 = objectarah1(row, col, imgMat, imgIdx, mode);
+                if (arah1 != "") {
+                    return arah1;
+                }
+
+                //
+                //cek arah 2
+                //
+                String arah2 = objectarah2(row, col, imgMat, imgIdx, mode);
+                if (arah2 != "") {
+                    return arah2;
+                }
+            } else //if(arah==8)
+            {
+                //
+                //cek arah 6
+                //
+                String arah6 = objectarah6(row, col, imgMat, imgIdx, mode);
+                if (arah6 != "") {
+                    return arah6;
+                }
+
+                //
+                //cek arah 7
+                //
+                String arah7 = objectarah7(row, col, imgMat, imgIdx, mode);
+                if (arah7 != "") {
+                    return arah7;
+                }
+
+                //
+                //cek arah 8
+                //
+                String arah8 = objectarah8(row, col, imgMat, imgIdx, mode);
+                if (arah8 != "") {
+                    return arah8;
+                }
+
+                //
+                //cek arah 1 (depan)
+                //
+                String arah1 = objectarah1(row, col, imgMat, imgIdx, mode);
+                if (arah1 != "") {
+                    return arah1;
+                }
+
+                //
+                //cek arah 2
+                //
+                String arah2 = objectarah2(row, col, imgMat, imgIdx, mode);
+                if (arah2 != "") {
+                    return arah2;
+                }
             }
-
-
-            //
-            //cek arah 3
-            //
-            String arah3 = objectarah3(row, col, imgMat, mode);
-            if (arah3 != "") {
-                return arah3;
-            }
-
+            return "";
+        } finally {
+            imgIdx.release();
         }
-        //kondisi perjalanan arah 2
-        else if (arah == 2) {
-            //
-            //cek arah 8 (samping kiri)
-            //
-            String arah8 = objectarah8(row, col, imgMat, mode);
-            if (arah8 != "") {
-                return arah8;
-            }
-
-            //
-            //cek arah 1 (depan)
-            //
-            String arah1 = objectarah1(row, col, imgMat, mode);
-            if (arah1 != "") {
-                return arah1;
-            }
-
-            //
-            //cek arah 2
-            //
-            String arah2 = objectarah2(row, col, imgMat, mode);
-            if (arah2 != "") {
-                return arah2;
-            }
-
-
-            //
-            //cek arah 3
-            //
-            String arah3 = objectarah3(row, col, imgMat, mode);
-            if (arah3 != "") {
-                return arah3;
-            }
-
-            //
-            //cek arah 4
-            //
-            String arah4 = objectarah4(row, col, imgMat, mode);
-            if (arah4 != "") {
-                return arah4;
-            }
-
-        } else if (arah == 3) {
-            //
-            //cek arah 1 (depan)
-            //
-            String arah1 = objectarah1(row, col, imgMat, mode);
-            if (arah1 != "") {
-                return arah1;
-            }
-
-            //
-            //cek arah 2
-            //
-            String arah2 = objectarah2(row, col, imgMat, mode);
-            if (arah2 != "") {
-                return arah2;
-            }
-
-
-            //
-            //cek arah 3
-            //
-            String arah3 = objectarah3(row, col, imgMat, mode);
-            if (arah3 != "") {
-                return arah3;
-            }
-
-            //
-            //cek arah 4
-            //
-            String arah4 = objectarah4(row, col, imgMat, mode);
-            if (arah4 != "") {
-                return arah4;
-            }
-
-            //
-            //cek arah 5
-            //
-            String arah5 = objectarah5(row, col, imgMat, mode);
-            if (arah5 != "") {
-                return arah5;
-            }
-        } else if (arah == 4) {
-            //
-            //cek arah 2
-            //
-            String arah2 = objectarah2(row, col, imgMat, mode);
-            if (arah2 != "") {
-                return arah2;
-            }
-
-
-            //
-            //cek arah 3
-            //
-            String arah3 = objectarah3(row, col, imgMat, mode);
-            if (arah3 != "") {
-                return arah3;
-            }
-
-            //
-            //cek arah 4
-            //
-            String arah4 = objectarah4(row, col, imgMat, mode);
-            if (arah4 != "") {
-                return arah4;
-            }
-
-            //
-            //cek arah 5
-            //
-            String arah5 = objectarah5(row, col, imgMat, mode);
-            if (arah5 != "") {
-                return arah5;
-            }
-
-            //
-            //cek arah 6
-            //
-            String arah6 = objectarah6(row, col, imgMat, mode);
-            if (arah6 != "") {
-                return arah6;
-            }
-
-            //
-            //cek arah 7
-            //
-            String arah7 = objectarah7(row, col, imgMat, mode);
-            if (arah7 != "") {
-                return arah7;
-            }
-        } else if (arah == 5) {
-            //
-            //cek arah 3
-            //
-            String arah3 = objectarah3(row, col, imgMat, mode);
-            if (arah3 != "") {
-                return arah3;
-            }
-
-            //
-            //cek arah 4
-            //
-            String arah4 = objectarah4(row, col, imgMat, mode);
-            if (arah4 != "") {
-                return arah4;
-            }
-
-            //
-            //cek arah 5
-            //
-            String arah5 = objectarah5(row, col, imgMat, mode);
-            if (arah5 != "") {
-                return arah5;
-            }
-
-            //
-            //cek arah 6
-            //
-            String arah6 = objectarah6(row, col, imgMat, mode);
-            if (arah6 != "") {
-                return arah6;
-            }
-
-            //
-            //cek arah 7
-            //
-            String arah7 = objectarah7(row, col, imgMat, mode);
-            if (arah7 != "") {
-                return arah7;
-            }
-        } else if (arah == 6) {
-            //
-            //cek arah 4
-            //
-            String arah4 = objectarah4(row, col, imgMat, mode);
-            if (arah4 != "") {
-                return arah4;
-            }
-
-            //
-            //cek arah 5
-            //
-            String arah5 = objectarah5(row, col, imgMat, mode);
-            if (arah5 != "") {
-                return arah5;
-            }
-
-            //
-            //cek arah 6
-            //
-            String arah6 = objectarah6(row, col, imgMat, mode);
-            if (arah6 != "") {
-                return arah6;
-            }
-
-            //
-            //cek arah 7
-            //
-            String arah7 = objectarah7(row, col, imgMat, mode);
-            if (arah7 != "") {
-                return arah7;
-            }
-
-            //
-            //cek arah 8
-            //
-            String arah8 = objectarah8(row, col, imgMat, mode);
-            if (arah8 != "") {
-                return arah8;
-            }
-
-            //
-            //cek arah 1 (depan)
-            //
-            String arah1 = objectarah1(row, col, imgMat, mode);
-            if (arah1 != "") {
-                return arah1;
-            }
-        } else if (arah == 7) {
-            //
-            //cek arah 5
-            //
-            String arah5 = objectarah5(row, col, imgMat, mode);
-            if (arah5 != "") {
-                return arah5;
-            }
-
-            //
-            //cek arah 6
-            //
-            String arah6 = objectarah6(row, col, imgMat, mode);
-            if (arah6 != "") {
-                return arah6;
-            }
-
-            //
-            //cek arah 7
-            //
-            String arah7 = objectarah7(row, col, imgMat, mode);
-            if (arah7 != "") {
-                return arah7;
-            }
-
-            //
-            //cek arah 8
-            //
-            String arah8 = objectarah8(row, col, imgMat, mode);
-            if (arah8 != "") {
-                return arah8;
-            }
-
-            //
-            //cek arah 1 (depan)
-            //
-            String arah1 = objectarah1(row, col, imgMat, mode);
-            if (arah1 != "") {
-                return arah1;
-            }
-
-            //
-            //cek arah 2
-            //
-            String arah2 = objectarah2(row, col, imgMat, mode);
-            if (arah2 != "") {
-                return arah2;
-            }
-        } else //if(arah==8)
-        {
-            //
-            //cek arah 6
-            //
-            String arah6 = objectarah6(row, col, imgMat, mode);
-            if (arah6 != "") {
-                return arah6;
-            }
-
-            //
-            //cek arah 7
-            //
-            String arah7 = objectarah7(row, col, imgMat, mode);
-            if (arah7 != "") {
-                return arah7;
-            }
-
-            //
-            //cek arah 8
-            //
-            String arah8 = objectarah8(row, col, imgMat, mode);
-            if (arah8 != "") {
-                return arah8;
-            }
-
-            //
-            //cek arah 1 (depan)
-            //
-            String arah1 = objectarah1(row, col, imgMat, mode);
-            if (arah1 != "") {
-                return arah1;
-            }
-
-            //
-            //cek arah 2
-            //
-            String arah2 = objectarah2(row, col, imgMat, mode);
-            if (arah2 != "") {
-                return arah2;
-            }
-        }
-        return "";
     }
 
 
@@ -504,14 +507,11 @@ public class ChainCodeWhiteConverter {
         return Byte.toUnsignedInt(imagByte[0]);
     }
 
-    private String objectarah1(int row, int col, Mat imgMat, int mode) {
+    private String objectarah1(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row - 1;
         tempcol = col;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray1 = grayScale(imagByte);
+        final int gray1 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray1 > toleransiWhite) {
                 areaObject(row, col);
@@ -525,14 +525,11 @@ public class ChainCodeWhiteConverter {
         return "";
     }
 
-    private String objectarah2(int row, int col, Mat imgMat, int mode) {
+    private String objectarah2(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row - 1;
         tempcol = col + 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray2 = grayScale(imagByte);
+        final int gray2 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray2 > toleransiWhite) {
                 areaObject(row, col);
@@ -546,14 +543,11 @@ public class ChainCodeWhiteConverter {
         return "";
     }
 
-    private String objectarah3(int row, int col, Mat imgMat, int mode) {
+    private String objectarah3(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row;
         tempcol = col + 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray3 = grayScale(imagByte);
+        final int gray3 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray3 > toleransiWhite) {
                 areaObject(row, col);
@@ -568,14 +562,11 @@ public class ChainCodeWhiteConverter {
         return "";
     }
 
-    private String objectarah4(int row, int col, Mat imgMat, int mode) {
+    private String objectarah4(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row + 1;
         tempcol = col + 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray4 = grayScale(imagByte);
+        final int gray4 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray4 > toleransiWhite) {
                 areaObject(row, col);
@@ -590,14 +581,11 @@ public class ChainCodeWhiteConverter {
         return "";
     }
 
-    private String objectarah5(int row, int col, Mat imgMat, int mode) {
+    private String objectarah5(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row + 1;
         tempcol = col;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray5 = grayScale(imagByte);
+        final int gray5 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray5 > toleransiWhite) {
                 areaObject(row, col);
@@ -612,14 +600,11 @@ public class ChainCodeWhiteConverter {
         return "";
     }
 
-    private String objectarah6(int row, int col, Mat imgMat, int mode) {
+    private String objectarah6(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row + 1;
         tempcol = col - 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray6 = grayScale(imagByte);
+        final int gray6 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray6 > toleransiWhite) {
                 areaObject(row, col);
@@ -634,14 +619,11 @@ public class ChainCodeWhiteConverter {
         return "";
     }
 
-    private String objectarah7(int row, int col, Mat imgMat, int mode) {
+    private String objectarah7(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row;
         tempcol = col - 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray7 = grayScale(imagByte);
+        final int gray7 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray7 > toleransiWhite) {
                 areaObject(row, col);
@@ -656,14 +638,11 @@ public class ChainCodeWhiteConverter {
         return "";
     }
 
-    private String objectarah8(int row, int col, Mat imgMat, int mode) {
+    private String objectarah8(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row - 1;
         tempcol = col - 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray8 = grayScale(imagByte);
+        final int gray8 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray8 > toleransiWhite) {
                 areaObject(row, col);

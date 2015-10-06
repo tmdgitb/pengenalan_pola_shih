@@ -98,4 +98,15 @@ public class ChainCode {
         }
         return matchedCount / (actual.length() * 10.0);
     }
+
+    @Override
+    public String toString() {
+        return "ChainCode{" +
+                "character='" + character + '\'' +
+                ", chainCode='" + chainCode + '\'' +
+                ", kodeBelok='" + kodeBelok + '\'' +
+                ", x=" + x +
+                ", y=" + y +
+                '}';
+    }
 }

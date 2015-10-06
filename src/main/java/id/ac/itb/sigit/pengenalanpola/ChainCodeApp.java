@@ -1,8 +1,8 @@
 package id.ac.itb.sigit.pengenalanpola;
 
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.highgui.Highgui;
+import org.bytedeco.javacpp.indexer.ByteIndexer;
+import org.bytedeco.javacpp.opencv_core;
+import org.bytedeco.javacpp.opencv_highgui;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -20,10 +20,6 @@ import java.io.File;
 public class ChainCodeApp implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(HistogramApp.class);
-
-    static {
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-    }
 
     public enum Direction {
 
@@ -52,59 +48,54 @@ public class ChainCodeApp implements CommandLineRunner {
     public void run(String... args) throws Exception {
         final File imageFile = new File("angka.jpg");//AA_1.jpg
         log.info("Processing image file '{}' ...", imageFile);
-        final Mat imgMat = Highgui.imread(imageFile.getPath(), Highgui.CV_LOAD_IMAGE_GRAYSCALE);
-        log.info("Image mat: rows={} cols={}", imgMat.rows(), imgMat.cols());
+        final opencv_core.Mat mat = opencv_highgui.imread(imageFile.getPath(), opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
+        log.info("Image mat: rows={} cols={}", mat.rows(), mat.cols());
 
-        byte[] imagByte = new byte[1];
-        flag = new boolean[imgMat.rows()][imgMat.cols()];
+        flag = new boolean[mat.rows()][mat.cols()];
         int objectIdx = 0;
 
-        for (int y = 0; y < imgMat.rows(); y++) {
-            Mat scanline = imgMat.row(y);
-            for (int x = 0; x < imgMat.cols(); x++) {
-                scanline.get(0, x, imagByte);
-                int grayScale = grayScale(imagByte);
+        final ByteIndexer idx = mat.createIndexer();
+        try {
+            for (int y = 0; y < mat.rows(); y++) {
+                for (int x = 0; x < mat.cols(); x++) {
+                    int grayScale = Byte.toUnsignedInt(idx.get(y, x));
 
-                if (grayScale < toleransi && searchObject && !flag[y][x]) {
+                    if (grayScale < toleransi && searchObject && !flag[y][x]) {
 
-                    minVer = y;
-                    maxVer = y;
-                    minHor = x;
-                    maxHor = x;
-                    String chaincode = prosesChaincode(y, x, 3, imgMat, 0);
-                    if (chaincode.length() > 20) {
-                        log.info("Chaincode object #{} at ({}, {}): {}", objectIdx, x, y, chaincode);
-                        objectIdx++;
-                        subObject(imgMat);
-                    }
-                    searchObject = false;
-                }
-
-                if (grayScale < toleransi && flag[y][x]) {
-                    scanline.get(0, x + 1, imagByte);
-                    int grayScale1 = grayScale(imagByte);
-
-                    if (grayScale1 > toleransi) {
-                        searchObject = true;
-                    } else {
+                        minVer = y;
+                        maxVer = y;
+                        minHor = x;
+                        maxHor = x;
+                        String chaincode = prosesChaincode(y, x, 3, mat, idx, 0);
+                        if (chaincode.length() > 20) {
+                            log.info("Chaincode object #{} at ({}, {}): {}", objectIdx, x, y, chaincode);
+                            objectIdx++;
+                            subObject(mat, idx);
+                        }
                         searchObject = false;
+                    }
+
+                    if (grayScale < toleransi && flag[y][x]) {
+                        int grayScale1 = Byte.toUnsignedInt(idx.get(y, x + 1));
+
+                        if (grayScale1 > toleransi) {
+                            searchObject = true;
+                        } else {
+                            searchObject = false;
+                        }
                     }
                 }
             }
+        } finally {
+            idx.release();
         }
     }
 
-    private void subObject(Mat imgMat) {
-        byte[] imagByte = new byte[1];
-
+    private void subObject(opencv_core.Mat mat, ByteIndexer idx) {
         for (int y = minVer; y <= maxVer; y++) {
-            Mat scanline = imgMat.row(y);
             for (int x = minHor; x <= maxHor; x++) {
-                scanline.get(0, x, imagByte);
-                int grayScale = grayScale(imagByte);
-
-                scanline.get(0, x + 1, imagByte);
-                int nextGrayScale = grayScale(imagByte);
+                int grayScale = Byte.toUnsignedInt(idx.get(y, x));
+                int nextGrayScale = Byte.toUnsignedInt(idx.get(y, x + 1));
                 if (grayScale < toleransi && flag[y][x]) {
                     if (nextGrayScale < toleransi) {
                         searchSubObject = true;
@@ -114,8 +105,7 @@ public class ChainCodeApp implements CommandLineRunner {
                 }
 
                 if (grayScale > toleransiWhite && searchSubObject && !flag[y][x]) {
-                    scanline.get(0, x + 1, imagByte);
-                    String chaincode2 = prosesChaincode(y, x, 3, imgMat, 1);
+                    String chaincode2 = prosesChaincode(y, x, 3, mat, idx, 1);
                     log.info("Chaincode subobject : {}", chaincode2);
                     searchSubObject = false;
                 }
@@ -131,7 +121,7 @@ public class ChainCodeApp implements CommandLineRunner {
         }
     }
 
-    private String prosesChaincode(int row, int col, int arah, Mat imgMat, int mode) {
+    private String prosesChaincode(int row, int col, int arah, opencv_core.Mat mat, ByteIndexer idx, int mode) {
         if (flag[row][col]) {
             return "";
         }
@@ -142,14 +132,14 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 7 (samping kiri)
             //
-            String arah7 = Objectarah7(row, col, imgMat, mode);
+            String arah7 = objectarah7(row, col, mat, idx, mode);
             if (arah7 != "") {
                 return arah7;
             }
             //
             //cek arah 8
             //
-            String arah8 = Objectarah8(row, col, imgMat, mode);
+            String arah8 = objectarah8(row, col, mat, idx, mode);
             if (arah8 != "") {
                 return arah8;
             }
@@ -157,7 +147,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 1 (depan)
             //
-            String arah1 = Objectarah1(row, col, imgMat, mode);
+            String arah1 = objectarah1(row, col, mat, idx, mode);
             if (arah1 != "") {
                 return arah1;
             }
@@ -165,7 +155,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 2
             //
-            String arah2 = Objectarah2(row, col, imgMat, mode);
+            String arah2 = objectarah2(row, col, mat, idx, mode);
             if (arah2 != "") {
                 return arah2;
             }
@@ -174,7 +164,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 3
             //
-            String arah3 = Objectarah3(row, col, imgMat, mode);
+            String arah3 = objectarah3(row, col, mat, idx, mode);
             if (arah3 != "") {
                 return arah3;
             }
@@ -185,7 +175,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 8 (samping kiri)
             //
-            String arah8 = Objectarah8(row, col, imgMat, mode);
+            String arah8 = objectarah8(row, col, mat, idx, mode);
             if (arah8 != "") {
                 return arah8;
             }
@@ -193,7 +183,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 1 (depan)
             //
-            String arah1 = Objectarah1(row, col, imgMat, mode);
+            String arah1 = objectarah1(row, col, mat, idx, mode);
             if (arah1 != "") {
                 return arah1;
             }
@@ -201,7 +191,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 2
             //
-            String arah2 = Objectarah2(row, col, imgMat, mode);
+            String arah2 = objectarah2(row, col, mat, idx, mode);
             if (arah2 != "") {
                 return arah2;
             }
@@ -210,7 +200,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 3
             //
-            String arah3 = Objectarah3(row, col, imgMat, mode);
+            String arah3 = objectarah3(row, col, mat, idx, mode);
             if (arah3 != "") {
                 return arah3;
             }
@@ -218,7 +208,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 4
             //
-            String arah4 = Objectarah4(row, col, imgMat, mode);
+            String arah4 = objectarah4(row, col, mat, idx, mode);
             if (arah4 != "") {
                 return arah4;
             }
@@ -227,7 +217,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 1 (depan)
             //
-            String arah1 = Objectarah1(row, col, imgMat, mode);
+            String arah1 = objectarah1(row, col, mat, idx, mode);
             if (arah1 != "") {
                 return arah1;
             }
@@ -235,7 +225,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 2
             //
-            String arah2 = Objectarah2(row, col, imgMat, mode);
+            String arah2 = objectarah2(row, col, mat, idx, mode);
             if (arah2 != "") {
                 return arah2;
             }
@@ -244,7 +234,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 3
             //
-            String arah3 = Objectarah3(row, col, imgMat, mode);
+            String arah3 = objectarah3(row, col, mat, idx, mode);
             if (arah3 != "") {
                 return arah3;
             }
@@ -252,7 +242,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 4
             //
-            String arah4 = Objectarah4(row, col, imgMat, mode);
+            String arah4 = objectarah4(row, col, mat, idx, mode);
             if (arah4 != "") {
                 return arah4;
             }
@@ -260,7 +250,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 5
             //
-            String arah5 = Objectarah5(row, col, imgMat, mode);
+            String arah5 = objectarah5(row, col, mat, idx, mode);
             if (arah5 != "") {
                 return arah5;
             }
@@ -268,7 +258,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 2
             //
-            String arah2 = Objectarah2(row, col, imgMat, mode);
+            String arah2 = objectarah2(row, col, mat, idx, mode);
             if (arah2 != "") {
                 return arah2;
             }
@@ -277,7 +267,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 3
             //
-            String arah3 = Objectarah3(row, col, imgMat, mode);
+            String arah3 = objectarah3(row, col, mat, idx, mode);
             if (arah3 != "") {
                 return arah3;
             }
@@ -285,7 +275,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 4
             //
-            String arah4 = Objectarah4(row, col, imgMat, mode);
+            String arah4 = objectarah4(row, col, mat, idx, mode);
             if (arah4 != "") {
                 return arah4;
             }
@@ -293,7 +283,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 5
             //
-            String arah5 = Objectarah5(row, col, imgMat, mode);
+            String arah5 = objectarah5(row, col, mat, idx, mode);
             if (arah5 != "") {
                 return arah5;
             }
@@ -301,7 +291,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 6
             //
-            String arah6 = Objectarah6(row, col, imgMat, mode);
+            String arah6 = objectarah6(row, col, mat, idx, mode);
             if (arah6 != "") {
                 return arah6;
             }
@@ -309,7 +299,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 3
             //
-            String arah3 = Objectarah3(row, col, imgMat, mode);
+            String arah3 = objectarah3(row, col, mat, idx, mode);
             if (arah3 != "") {
                 return arah3;
             }
@@ -317,7 +307,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 4
             //
-            String arah4 = Objectarah4(row, col, imgMat, mode);
+            String arah4 = objectarah4(row, col, mat, idx, mode);
             if (arah4 != "") {
                 return arah4;
             }
@@ -325,7 +315,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 5
             //
-            String arah5 = Objectarah5(row, col, imgMat, mode);
+            String arah5 = objectarah5(row, col, mat, idx, mode);
             if (arah5 != "") {
                 return arah5;
             }
@@ -333,7 +323,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 6
             //
-            String arah6 = Objectarah6(row, col, imgMat, mode);
+            String arah6 = objectarah6(row, col, mat, idx, mode);
             if (arah6 != "") {
                 return arah6;
             }
@@ -341,7 +331,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 7
             //
-            String arah7 = Objectarah7(row, col, imgMat, mode);
+            String arah7 = objectarah7(row, col, mat, idx, mode);
             if (arah7 != "") {
                 return arah7;
             }
@@ -349,7 +339,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 4
             //
-            String arah4 = Objectarah4(row, col, imgMat, mode);
+            String arah4 = objectarah4(row, col, mat, idx, mode);
             if (arah4 != "") {
                 return arah4;
             }
@@ -357,7 +347,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 5
             //
-            String arah5 = Objectarah5(row, col, imgMat, mode);
+            String arah5 = objectarah5(row, col, mat, idx, mode);
             if (arah5 != "") {
                 return arah5;
             }
@@ -365,7 +355,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 6
             //
-            String arah6 = Objectarah6(row, col, imgMat, mode);
+            String arah6 = objectarah6(row, col, mat, idx, mode);
             if (arah6 != "") {
                 return arah6;
             }
@@ -373,7 +363,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 7
             //
-            String arah7 = Objectarah7(row, col, imgMat, mode);
+            String arah7 = objectarah7(row, col, mat, idx, mode);
             if (arah7 != "") {
                 return arah7;
             }
@@ -381,7 +371,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 8
             //
-            String arah8 = Objectarah8(row, col, imgMat, mode);
+            String arah8 = objectarah8(row, col, mat, idx, mode);
             if (arah8 != "") {
                 return arah8;
             }
@@ -389,7 +379,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 5
             //
-            String arah5 = Objectarah5(row, col, imgMat, mode);
+            String arah5 = objectarah5(row, col, mat, idx, mode);
             if (arah5 != "") {
                 return arah5;
             }
@@ -397,7 +387,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 6
             //
-            String arah6 = Objectarah6(row, col, imgMat, mode);
+            String arah6 = objectarah6(row, col, mat, idx, mode);
             if (arah6 != "") {
                 return arah6;
             }
@@ -405,7 +395,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 7
             //
-            String arah7 = Objectarah7(row, col, imgMat, mode);
+            String arah7 = objectarah7(row, col, mat, idx, mode);
             if (arah7 != "") {
                 return arah7;
             }
@@ -413,7 +403,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 8
             //
-            String arah8 = Objectarah8(row, col, imgMat, mode);
+            String arah8 = objectarah8(row, col, mat, idx, mode);
             if (arah8 != "") {
                 return arah8;
             }
@@ -421,7 +411,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 1 (depan)
             //
-            String arah1 = Objectarah1(row, col, imgMat, mode);
+            String arah1 = objectarah1(row, col, mat, idx, mode);
             if (arah1 != "") {
                 return arah1;
             }
@@ -430,7 +420,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 6
             //
-            String arah6 = Objectarah6(row, col, imgMat, mode);
+            String arah6 = objectarah6(row, col, mat, idx, mode);
             if (arah6 != "") {
                 return arah6;
             }
@@ -438,7 +428,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 7
             //
-            String arah7 = Objectarah7(row, col, imgMat, mode);
+            String arah7 = objectarah7(row, col, mat, idx, mode);
             if (arah7 != "") {
                 return arah7;
             }
@@ -446,7 +436,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 8
             //
-            String arah8 = Objectarah8(row, col, imgMat, mode);
+            String arah8 = objectarah8(row, col, mat, idx, mode);
             if (arah8 != "") {
                 return arah8;
             }
@@ -454,7 +444,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 1 (depan)
             //
-            String arah1 = Objectarah1(row, col, imgMat, mode);
+            String arah1 = objectarah1(row, col, mat, idx, mode);
             if (arah1 != "") {
                 return arah1;
             }
@@ -462,7 +452,7 @@ public class ChainCodeApp implements CommandLineRunner {
             //
             //cek arah 2
             //
-            String arah2 = Objectarah2(row, col, imgMat, mode);
+            String arah2 = objectarah2(row, col, mat, idx, mode);
             if (arah2 != "") {
                 return arah2;
             }
@@ -475,177 +465,158 @@ public class ChainCodeApp implements CommandLineRunner {
 //        int b = Byte.toUnsignedInt(imagByte[0]);
 //        int g = Byte.toUnsignedInt(imagByte[1]);
 //        int r = Byte.toUnsignedInt(imagByte[2]);
-//        return Math.round((r + g + b) / 3f);
+//        return opencv_core.Math.round((r + g + b) / 3f);
     }
 
-    private String Objectarah1(int row, int col, Mat imgMat, int mode) {
+    private String objectarah1(int row, int col, opencv_core.Mat mat, ByteIndexer idx, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row - 1;
         tempcol = col;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray1 = grayScale(imagByte);
+        int gray1 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray1 > toleransiWhite) {
-                return "1" + prosesChaincode(temprow, tempcol, 1, imgMat, mode);
+                return "1" + prosesChaincode(temprow, tempcol, 1, mat, idx, mode);
             }
         } else {
             if (gray1 < toleransi) {
                 areaObject(row, col);
-                return "1" + prosesChaincode(temprow, tempcol, 1, imgMat, mode);
+                return "1" + prosesChaincode(temprow, tempcol, 1, mat, idx, mode);
             }
         }
         return "";
     }
 
-    private String Objectarah2(int row, int col, Mat imgMat, int mode) {
+    private String objectarah2(int row, int col, opencv_core.Mat mat, ByteIndexer idx, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row - 1;
         tempcol = col + 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray2 = grayScale(imagByte);
+        int gray2 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray2 > toleransiWhite) {
-                return "2" + prosesChaincode(temprow, tempcol, 2, imgMat, mode);
+                return "2" + prosesChaincode(temprow, tempcol, 2, mat, idx, mode);
             }
         } else {
             if (gray2 < toleransi) {
                 areaObject(row, col);
-                return "2" + prosesChaincode(temprow, tempcol, 2, imgMat, mode);
+                return "2" + prosesChaincode(temprow, tempcol, 2, mat, idx, mode);
             }
         }
         return "";
     }
 
-    private String Objectarah3(int row, int col, Mat imgMat, int mode) {
+    private String objectarah3(int row, int col, opencv_core.Mat mat, ByteIndexer idx, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
 
         temprow = row;
         tempcol = col + 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray3 = grayScale(imagByte);
+        int gray3 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray3 > toleransiWhite) {
-                return "3" + prosesChaincode(temprow, tempcol, 3, imgMat, mode);
+                return "3" + prosesChaincode(temprow, tempcol, 3, mat, idx, mode);
             }
         } else {
             if (gray3 < toleransi) {
                 areaObject(row, col);
-                return "3" + prosesChaincode(temprow, tempcol, 3, imgMat, mode);
+                return "3" + prosesChaincode(temprow, tempcol, 3, mat, idx, mode);
             }
         }
 
         return "";
     }
 
-    private String Objectarah4(int row, int col, Mat imgMat, int mode) {
+    private String objectarah4(int row, int col, opencv_core.Mat mat, ByteIndexer idx, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
 
         temprow = row + 1;
         tempcol = col + 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray4 = grayScale(imagByte);
+        int gray4 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray4 > toleransiWhite) {
-                return "4" + prosesChaincode(temprow, tempcol, 4, imgMat, mode);
+                return "4" + prosesChaincode(temprow, tempcol, 4, mat, idx, mode);
             }
         } else {
             if (gray4 < toleransi) {
                 areaObject(row, col);
-                return "4" + prosesChaincode(temprow, tempcol, 4, imgMat, mode);
+                return "4" + prosesChaincode(temprow, tempcol, 4, mat, idx, mode);
             }
         }
 
         return "";
     }
 
-    private String Objectarah5(int row, int col, Mat imgMat, int mode) {
+    private String objectarah5(int row, int col, opencv_core.Mat mat, ByteIndexer idx, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
 
         temprow = row + 1;
         tempcol = col;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray5 = grayScale(imagByte);
+        int gray5 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray5 > toleransiWhite) {
-                return "5" + prosesChaincode(temprow, tempcol, 5, imgMat, mode);
+                return "5" + prosesChaincode(temprow, tempcol, 5, mat, idx, mode);
             }
         } else {
             if (gray5 < toleransi) {
                 areaObject(row, col);
-                return "5" + prosesChaincode(temprow, tempcol, 5, imgMat, mode);
+                return "5" + prosesChaincode(temprow, tempcol, 5, mat, idx, mode);
             }
         }
 
         return "";
     }
 
-    private String Objectarah6(int row, int col, Mat imgMat, int mode) {
+    private String objectarah6(int row, int col, opencv_core.Mat mat, ByteIndexer idx, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
 
         temprow = row + 1;
         tempcol = col - 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray6 = grayScale(imagByte);
+        int gray6 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray6 > toleransiWhite) {
-                return "6" + prosesChaincode(temprow, tempcol, 6, imgMat, mode);
+                return "6" + prosesChaincode(temprow, tempcol, 6, mat, idx, mode);
             }
         } else {
             if (gray6 < toleransi) {
                 areaObject(row, col);
-                return "6" + prosesChaincode(temprow, tempcol, 6, imgMat, mode);
+                return "6" + prosesChaincode(temprow, tempcol, 6, mat, idx, mode);
             }
         }
 
         return "";
     }
 
-    private String Objectarah7(int row, int col, Mat imgMat, int mode) {
+    private String objectarah7(int row, int col, opencv_core.Mat mat, ByteIndexer idx, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
 
         temprow = row;
         tempcol = col - 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray7 = grayScale(imagByte);
+        int gray7 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray7 > toleransiWhite) {
-                return "7" + prosesChaincode(temprow, tempcol, 7, imgMat, mode);
+                return "7" + prosesChaincode(temprow, tempcol, 7, mat, idx, mode);
             }
         } else {
             if (gray7 < toleransi) {
                 areaObject(row, col);
-                return "7" + prosesChaincode(temprow, tempcol, 7, imgMat, mode);
+                return "7" + prosesChaincode(temprow, tempcol, 7, mat, idx, mode);
             }
         }
 
         return "";
     }
 
-    private String Objectarah8(int row, int col, Mat imgMat, int mode) {
+    private String objectarah8(int row, int col, opencv_core.Mat mat, ByteIndexer idx, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row - 1;
         tempcol = col - 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray8 = grayScale(imagByte);
+        int gray8 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray8 > toleransiWhite) {
-                return "8" + prosesChaincode(temprow, tempcol, 8, imgMat, mode);
+                return "8" + prosesChaincode(temprow, tempcol, 8, mat, idx, mode);
             }
         } else {
             if (gray8 < toleransi) {
                 areaObject(row, col);
-                return "8" + prosesChaincode(temprow, tempcol, 8, imgMat, mode);
+                return "8" + prosesChaincode(temprow, tempcol, 8, mat, idx, mode);
             }
         }
 

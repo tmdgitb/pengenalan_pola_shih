@@ -1,7 +1,7 @@
 package id.ac.itb.sigit.pengenalanpola;
 
-import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
+import org.bytedeco.javacpp.indexer.ByteIndexer;
+import org.bytedeco.javacpp.opencv_core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,41 +10,41 @@ import org.slf4j.LoggerFactory;
  */
 public class ChainCodeConverter {
     private static final Logger log = LoggerFactory.getLogger(HistogramApp.class);
+    private final ByteIndexer idx;
     private boolean flag[][];
     private int toleransi = 10, toleransiWhite = 230;
     private boolean searchObject = true, searchSubObject = false;
     private int minHor = 0, maxHor = 0, minVer = 0, maxVer = 0;
-    private Mat imgMat;
-    private CharDef charDef;
+    private final opencv_core.Mat imgMat;
+    private final CharDef charDef;
 
     /**
      * @param data MUST BE GRAYSCALE
+     * @param idx
      */
-    public ChainCodeConverter(Mat data) {
-        this(data, "");
+    public ChainCodeConverter(opencv_core.Mat data, ByteIndexer idx) {
+        this(data, idx, "");
     }
 
     /**
      * @param data MUST BE GRAYSCALE
+     * @param idx
      * @param msg
      */
-    public ChainCodeConverter(Mat data, String msg) {
-        imgMat = data;
-        charDef = new CharDef();
-        charDef.setCharacter(msg);
+    public ChainCodeConverter(opencv_core.Mat data, ByteIndexer idx, String msg) {
+        this.imgMat = data;
+        this.idx = idx;
+        this.charDef = new CharDef();
+        this.charDef.setCharacter(msg);
     }
 
     public CharDef getChainCode() {
-        byte[] imagByte = new byte[1];
         flag = new boolean[imgMat.rows()][imgMat.cols()];
         int objectIdx = 0;
 
-
         for (int y = 0; y < imgMat.rows(); y++) {
-            Mat scanline = imgMat.row(y);
             for (int x = 0; x < imgMat.cols(); x++) {
-                scanline.get(0, x, imagByte);
-                int grayScale = grayScale(imagByte);
+                final int grayScale = Byte.toUnsignedInt(idx.get(y, x));
 
                 if (grayScale < toleransi && searchObject && !flag[y][x]) {
 
@@ -64,8 +64,7 @@ public class ChainCodeConverter {
                 }
 
                 if (grayScale < toleransi && flag[y][x]) {
-                    scanline.get(0, x + 1, imagByte);
-                    int grayScale1 = grayScale(imagByte);
+                    final int grayScale1 = Byte.toUnsignedInt(idx.get(y, x + 1));
 
                     if (grayScale1 > toleransi) {
                         searchObject = true;
@@ -79,17 +78,11 @@ public class ChainCodeConverter {
         return charDef;
     }
 
-    private void subObject(Mat imgMat) {
-        byte[] imagByte = new byte[1];
-
+    private void subObject(opencv_core.Mat imgMat) {
         for (int y = minVer; y <= maxVer; y++) {
-            Mat scanline = imgMat.row(y);
             for (int x = minHor; x <= maxHor; x++) {
-                scanline.get(0, x, imagByte);
-                int grayScale = grayScale(imagByte);
-
-                scanline.get(0, x + 1, imagByte);
-                int nextGrayScale = grayScale(imagByte);
+                final int grayScale = Byte.toUnsignedInt(idx.get(y, x));
+                final int nextGrayScale = Byte.toUnsignedInt(idx.get(y, x + 1));
                 if (grayScale < toleransi && flag[y][x]) {
                     if (nextGrayScale < toleransi) {
                         searchSubObject = true;
@@ -99,7 +92,6 @@ public class ChainCodeConverter {
                 }
 
                 if (grayScale > toleransiWhite && searchSubObject && !flag[y][x]) {
-                    scanline.get(0, x + 1, imagByte);
                     String chaincode2 = prosesChaincode(y, x, 3, imgMat, 1);
                     charDef.getSubChainCode().add(chaincode2);
                     log.info("Chaincode subobject : {}", chaincode2);
@@ -117,7 +109,7 @@ public class ChainCodeConverter {
         }
     }
 
-    private String prosesChaincode(int row, int col, int arah, Mat imgMat, int mode) {
+    private String prosesChaincode(int row, int col, int arah, opencv_core.Mat imgMat, int mode) {
         if (flag[row][col]) {
             return "";
         }
@@ -481,18 +473,11 @@ public class ChainCodeConverter {
     }
 
 
-    private int grayScale(byte[] imagByte) {
-        return Byte.toUnsignedInt(imagByte[0]);
-    }
-
-    private String objectarah1(int row, int col, Mat imgMat, int mode) {
+    private String objectarah1(int row, int col, opencv_core.Mat imgMat, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row - 1;
         tempcol = col;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray1 = grayScale(imagByte);
+        final int gray1 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray1 > toleransiWhite) {
                 return "1" + prosesChaincode(temprow, tempcol, 1, imgMat, mode);
@@ -506,14 +491,11 @@ public class ChainCodeConverter {
         return "";
     }
 
-    private String objectarah2(int row, int col, Mat imgMat, int mode) {
+    private String objectarah2(int row, int col, opencv_core.Mat imgMat, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row - 1;
         tempcol = col + 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray2 = grayScale(imagByte);
+        final int gray2 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray2 > toleransiWhite) {
                 return "2" + prosesChaincode(temprow, tempcol, 2, imgMat, mode);
@@ -527,14 +509,11 @@ public class ChainCodeConverter {
         return "";
     }
 
-    private String objectarah3(int row, int col, Mat imgMat, int mode) {
+    private String objectarah3(int row, int col, opencv_core.Mat imgMat, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row;
         tempcol = col + 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray3 = grayScale(imagByte);
+        final int gray3 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray3 > toleransiWhite) {
                 return "3" + prosesChaincode(temprow, tempcol, 3, imgMat, mode);
@@ -549,14 +528,11 @@ public class ChainCodeConverter {
         return "";
     }
 
-    private String objectarah4(int row, int col, Mat imgMat, int mode) {
+    private String objectarah4(int row, int col, opencv_core.Mat imgMat, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row + 1;
         tempcol = col + 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray4 = grayScale(imagByte);
+        final int gray4 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray4 > toleransiWhite) {
                 return "4" + prosesChaincode(temprow, tempcol, 4, imgMat, mode);
@@ -571,14 +547,11 @@ public class ChainCodeConverter {
         return "";
     }
 
-    private String objectarah5(int row, int col, Mat imgMat, int mode) {
+    private String objectarah5(int row, int col, opencv_core.Mat imgMat, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row + 1;
         tempcol = col;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray5 = grayScale(imagByte);
+        final int gray5 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray5 > toleransiWhite) {
                 return "5" + prosesChaincode(temprow, tempcol, 5, imgMat, mode);
@@ -593,14 +566,11 @@ public class ChainCodeConverter {
         return "";
     }
 
-    private String objectarah6(int row, int col, Mat imgMat, int mode) {
+    private String objectarah6(int row, int col, opencv_core.Mat imgMat, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row + 1;
         tempcol = col - 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray6 = grayScale(imagByte);
+        final int gray6 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray6 > toleransiWhite) {
                 return "6" + prosesChaincode(temprow, tempcol, 6, imgMat, mode);
@@ -615,14 +585,11 @@ public class ChainCodeConverter {
         return "";
     }
 
-    private String objectarah7(int row, int col, Mat imgMat, int mode) {
+    private String objectarah7(int row, int col, opencv_core.Mat imgMat, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row;
         tempcol = col - 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray7 = grayScale(imagByte);
+        final int gray7 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray7 > toleransiWhite) {
                 return "7" + prosesChaincode(temprow, tempcol, 7, imgMat, mode);
@@ -637,14 +604,11 @@ public class ChainCodeConverter {
         return "";
     }
 
-    private String objectarah8(int row, int col, Mat imgMat, int mode) {
+    private String objectarah8(int row, int col, opencv_core.Mat imgMat, int mode) {
         int temprow, tempcol;
-        byte[] imagByte = new byte[1];
-
         temprow = row - 1;
         tempcol = col - 1;
-        imgMat.get(temprow, tempcol, imagByte);
-        int gray8 = grayScale(imagByte);
+        final int gray8 = Byte.toUnsignedInt(idx.get(temprow, tempcol));
         if (mode == 1) {
             if (gray8 > toleransiWhite) {
                 return "8" + prosesChaincode(temprow, tempcol, 8, imgMat, mode);

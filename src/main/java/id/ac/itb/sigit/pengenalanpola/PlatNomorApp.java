@@ -1,8 +1,7 @@
 package id.ac.itb.sigit.pengenalanpola;
 
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.highgui.Highgui;
+import org.bytedeco.javacpp.opencv_core;
+import org.bytedeco.javacpp.opencv_highgui;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -23,9 +22,9 @@ public class PlatNomorApp implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(PlatNomorApp.class);
 
-    static {
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-    }
+//    static {
+//        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+//    }
 
     public static void main(String[] args) {
         new SpringApplicationBuilder(PlatNomorApp.class).profiles("platnomorapp")
@@ -88,10 +87,11 @@ public class PlatNomorApp implements CommandLineRunner {
         for (int i = 0; i < stringTraining.size(); i++) {
             final File imageFile = new File(stringTraining.get(i));
             log.info("Processing image file '{}' ...", imageFile);
-            final Mat imgMat = Highgui.imread(imageFile.getPath(), Highgui.CV_LOAD_IMAGE_GRAYSCALE);
-            log.info("Image mat: rows={} cols={}", imgMat.rows(), imgMat.cols());
-            ChainCodeWhiteConverter chainCodeWhiteConverter = new ChainCodeWhiteConverter(imgMat, "plat");
-            List<ChainCode> data = chainCodeWhiteConverter.getChainCode();
+            final opencv_core.Mat imgMat = opencv_highgui.imread(imageFile.getPath(), opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
+            log.info("Image mat: rows={} cols={}: {}", imgMat.rows(), imgMat.cols(), imgMat);
+            final ChainCodeWhiteConverter chainCodeWhiteConverter = new ChainCodeWhiteConverter(imgMat, "plat");
+            final List<ChainCode> data = chainCodeWhiteConverter.getChainCode();
+            log.info("Chaincode: {}", data);
             data.get(0).setCharacter(stringTraining.get(i));
             dataTraining.add(data.get(0));
         }
@@ -100,7 +100,7 @@ public class PlatNomorApp implements CommandLineRunner {
         //===================================Data Plat======================================//
         final File imageFile = new File("Plat_Nomor.jpg");//AA_1.jpg
         log.info("Processing image file '{}' ...", imageFile);
-        final Mat imgMat = Highgui.imread(imageFile.getPath(), Highgui.CV_LOAD_IMAGE_GRAYSCALE);
+        final opencv_core.Mat imgMat = opencv_highgui.imread(imageFile.getPath(), opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
         log.info("Image mat: rows={} cols={}", imgMat.rows(), imgMat.cols());
         ChainCodeWhiteConverter chainCodeWhiteConverter = new ChainCodeWhiteConverter(imgMat, "plat");
         List<ChainCode> dataPlat = chainCodeWhiteConverter.getChainCode();

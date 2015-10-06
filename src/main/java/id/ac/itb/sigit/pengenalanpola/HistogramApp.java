@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.highgui.Highgui;
+import org.bytedeco.javacpp.indexer.ByteIndexer;
+import org.bytedeco.javacpp.opencv_core;
+import org.bytedeco.javacpp.opencv_highgui;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -24,7 +24,7 @@ public class HistogramApp implements CommandLineRunner {
 
     static {
         log.info("java.library.path = {}", System.getProperty("java.library.path"));
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+//        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
 
     public static void main(String[] args) {
@@ -54,60 +54,67 @@ public class HistogramApp implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-
         final File imageFile = new File("Beach.jpg");
         log.info("Processing image file '{}' ...", imageFile);
-        final Mat imgMat = Highgui.imread(imageFile.getPath());
+        final opencv_core.Mat imgMat = opencv_highgui.imread(imageFile.getPath());
         log.info("Image mat: rows={} cols={}", imgMat.rows(), imgMat.cols());
 
-        byte[] imagByte = new byte[3];
-        imgMat.get(0, 0, imagByte);
-        log.info("Image {}", imagByte);
+        int jumlahWarna;
+        int rImage[];
+        int gImage[];
+        int bImage[];
+        int grayScaleImage[];
+        final opencv_core.Mat newImage = imgMat.clone();
+        final ByteIndexer idx = imgMat.createIndexer();
+        final ByteIndexer newIdx = newImage.createIndexer();
+        try {
+//            byte[] imagByte = new byte[3];
+//            idx.get(0, 0, imagByte);
+//            log.info("Image {}", imagByte);
 
-        boolean colorCounts[][][] = new boolean[256][256][256];
-        int jumlahWarna = 0;
-        int rImage[] = new int[256];
-        int gImage[] = new int[256];
-        int bImage[] = new int[256];
-        int grayScaleImage[] = new int[256];
+            boolean colorCounts[][][] = new boolean[256][256][256];
+            jumlahWarna = 0;
+            rImage = new int[256];
+            gImage = new int[256];
+            bImage = new int[256];
+            grayScaleImage = new int[256];
 
-        byte[] fGamaByte = getFGamaByte();
+            byte[] imagByte = new byte[3];
+            byte[] fGamaByte = getFGamaByte();
 
+            for (int y = 0; y < imgMat.rows(); y++) {
+//                opencv_core.Mat scanline = imgMat.row(i);
+                for (int x = 0; x < imgMat.cols(); x++) {
+                    byte[] newImagByte = new byte[3];
+                    idx.get(y, x, imagByte);
+                    int b = Byte.toUnsignedInt(imagByte[0]);
+                    int g = Byte.toUnsignedInt(imagByte[1]);
+                    int r = Byte.toUnsignedInt(imagByte[2]);
 
-        Mat newImage = imgMat.clone();
+                    log.trace("Jumlah Warna R{} G{} B {}", r, g, b);
 
-        for (int i = 0; i < imgMat.rows(); i++) {
-            Mat scanline = imgMat.row(i);
-            ;
+                    if (!colorCounts[r][g][b]) {
+                        jumlahWarna++;
+                    }
+                    colorCounts[r][g][b] = true;
 
-            for (int j = 0; j < imgMat.cols(); j++) {
-                byte[] newImagByte = new byte[3];
-                scanline.get(0, j, imagByte);
-                int b = Byte.toUnsignedInt(imagByte[0]);
-                int g = Byte.toUnsignedInt(imagByte[1]);
-                int r = Byte.toUnsignedInt(imagByte[2]);
+                    rImage[r]++;
+                    gImage[g]++;
+                    bImage[b]++;
+                    int grayScale = Math.round((r + g + b) / 3f);
+                    grayScaleImage[grayScale]++;
 
-                log.trace("Jumlah Warna R{} G{} B {}", r, g, b);
+                    //fgamma
+                    newImagByte[0] = fGamaByte[b];//(byte) fGama(b);
+                    newImagByte[1] = fGamaByte[g];//(byte) fGama(g);
+                    newImagByte[2] = fGamaByte[r];//(byte) fGama(r);
 
-                if (!colorCounts[r][g][b]) {
-                    jumlahWarna++;
+                    newIdx.put(y, x, newImagByte);
                 }
-                colorCounts[r][g][b] = true;
-
-                rImage[r]++;
-                gImage[g]++;
-                bImage[b]++;
-                int grayScale = Math.round((r + g + b) / 3f);
-                grayScaleImage[grayScale]++;
-
-                //fgamma
-                newImagByte[0] = fGamaByte[b];//(byte) fGama(b);
-                newImagByte[1] = fGamaByte[g];//(byte) fGama(g);
-                newImagByte[2] = fGamaByte[r];//(byte) fGama(r);
-
-                newImage.put(i, j, newImagByte);
-
             }
+        } finally {
+            newIdx.release();
+            idx.release();
         }
 
         log.info("Jumlah Warna {}", jumlahWarna);
@@ -144,9 +151,9 @@ public class HistogramApp implements CommandLineRunner {
         FileUtils.write(fileGray, outGray);
 
 
-        // Highgui.imwrite("../../images/Gray_Image.jpg", newImage);
+        // opencv_highgui.imwrite("../../images/Gray_Image.jpg", newImage);
 
-        Highgui.imwrite("D:\\Gray_Image.jpg", newImage);
+        opencv_highgui.imwrite("D:/Gray_Image.jpg", newImage);
     }
 
 
