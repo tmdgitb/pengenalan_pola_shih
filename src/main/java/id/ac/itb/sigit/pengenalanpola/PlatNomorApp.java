@@ -28,6 +28,7 @@ public class PlatNomorApp implements CommandLineRunner {
 
     public static void main(String[] args) {
         new SpringApplicationBuilder(PlatNomorApp.class).profiles("platnomorapp")
+                .web(false)
                 .run(args);
     }
 

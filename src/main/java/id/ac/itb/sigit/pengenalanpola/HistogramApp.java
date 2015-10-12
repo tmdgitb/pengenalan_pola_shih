@@ -29,6 +29,7 @@ public class HistogramApp implements CommandLineRunner {
 
     public static void main(String[] args) {
         new SpringApplicationBuilder(HistogramApp.class).profiles("histogramapp")
+                .web(false)
                 .run(args);
     }
 

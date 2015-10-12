@@ -22,9 +22,9 @@ import java.util.List;
 
 @SpringBootApplication
 @Profile("ChainCodeAZ")
-public class ChainCodeAZ implements CommandLineRunner {
+public class ChainCodeAZApp implements CommandLineRunner {
 
-    private static final Logger log = LoggerFactory.getLogger(ChainCodeAZ.class);
+    private static final Logger log = LoggerFactory.getLogger(ChainCodeAZApp.class);
 
     int fontFace = opencv_core.FONT_HERSHEY_PLAIN;
     double fontScale = 20;
@@ -33,7 +33,8 @@ public class ChainCodeAZ implements CommandLineRunner {
     List<CharDef> charDefs = new ArrayList<>();
 
     public static void main(String[] args) {
-        new SpringApplicationBuilder(ChainCodeAZ.class).profiles("ChainCodeAZ")
+        new SpringApplicationBuilder(ChainCodeAZApp.class).profiles("ChainCodeAZ")
+                .web(false)
                 .run(args);
     }
 

@@ -41,6 +41,7 @@ public class ChainCodeApp implements CommandLineRunner {
 
     public static void main(String[] args) {
         new SpringApplicationBuilder(ChainCodeApp.class).profiles("chaincodeapp")
+                .web(false)
                 .run(args);
     }
 
