@@ -12,11 +12,11 @@ public class HomePage extends PubLayout {
 
     @Override
     public IModel<String> getTitleModel() {
-        return new Model<>("Pengenalan Pola: Meraba citra, mencari arti.");
+        return new Model<>("Pengenalan Pola SHIH: Meraba citra, mencari arti.");
     }
 
     @Override
     public IModel<String> getMetaDescriptionModel() {
-        return new Model<>("Pengenalan Pola: Meraba citra, mencari arti.");
+        return new Model<>("Pengenalan Pola SHIH: Meraba citra, mencari arti.");
     }
 }

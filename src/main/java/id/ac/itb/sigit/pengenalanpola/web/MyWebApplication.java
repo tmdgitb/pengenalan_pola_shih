@@ -10,10 +10,12 @@ import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.settings.ExceptionSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.wicketstuff.annotation.scan.AnnotatedMountScanner;
 
-@Component("daemonApp")
+@Component("webApp")
+@Profile("daemonApp")
 public class MyWebApplication extends WebApplication {
     @Override
     public Class<? extends Page> getHomePage() {

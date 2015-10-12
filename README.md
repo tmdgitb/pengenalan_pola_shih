@@ -1,8 +1,14 @@
 # Pengenalan pola
 
-mengambil byte data dari image
+Mengambil byte data dari image.
 
-## OpenCV
+## DaemonApp
+
+Gunakan browser untuk membuka http://localhost:8080/
+
+## OBSOLETE: OpenCV
+
+**OBSOLETE: No longer required because we use bytedeco's javacpp-presets opencv!**
 
 ### Windows 64-bit
 

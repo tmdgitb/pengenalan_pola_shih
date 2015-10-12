@@ -21,5 +21,6 @@ public class DaemonApp implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        log.info("Please open using browser: http://localhost:8080/");
     }
 }
