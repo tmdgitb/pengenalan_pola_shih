@@ -10,6 +10,7 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.GenericPanel;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
@@ -19,10 +20,13 @@ import java.util.List;
 /**
  * Created by ceefour on 13/10/2015.
  */
-public class HistogramPanel extends GenericPanel<int[]> {
+public class MultiHistogramPanel extends Panel {
 
-    public HistogramPanel(String id, String name, IModel<int[]> model) {
-        super(id, model);
+    @Inject
+    private Histogram histogram;
+
+    public MultiHistogramPanel(String id) {
+        super(id);
         setOutputMarkupId(true);
 //        final LoadableDetachableModel<String> valuesModel = new LoadableDetachableModel<String>() {
 //            @Override
@@ -36,10 +40,15 @@ public class HistogramPanel extends GenericPanel<int[]> {
         final LoadableDetachableModel<String> c3Model = new LoadableDetachableModel<String>() {
             @Override
             protected String load() {
-                final String dataJson = Histogram.histToJsonC3(name, model.getObject());
+                final String dataJson = Histogram.histToJsonC3(histogram.getGrayscale(),
+                        histogram.getRed(), histogram.getGreen(), histogram.getBlue());
                 return "var chart = c3.generate({\n" +
                         "    bindto: '#" + getMarkupId() + " .chart',\n" +
-                        "    data: " + dataJson + "\n" +
+                        "    data: {" +
+                        "        columns: " + dataJson + "," +
+                        "        colors: {grayscale: 'gray', red: 'red', green: 'green', blue: 'blue'},\n" +
+                        "        types: {grayscale: 'bar'}\n" +
+                        "    }" +
                         "});";
             }
         };

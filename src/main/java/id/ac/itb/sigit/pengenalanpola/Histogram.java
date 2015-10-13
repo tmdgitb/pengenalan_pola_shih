@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by ceefour on 13/10/2015.
@@ -20,6 +22,22 @@ public class Histogram {
     public static ObjectMapper MAPPER = new ObjectMapper();
 
     private static Logger log = LoggerFactory.getLogger(Histogram.class);
+
+    public static class ChartDataC3 {
+        public List<Object[]> columns = new ArrayList<>();
+
+        public ChartDataC3() {
+        }
+
+        public void addSeries(String color, int[] hist) {
+            Object[] series = new Object[257];
+            series[0] = color;
+            for (int i = 0; i < hist.length; i++) {
+                series[1 + i] = hist[i];
+            }
+            columns.add(series);
+        }
+    }
 
     public static class ChartData {
         public int color;
@@ -38,6 +56,29 @@ public class Histogram {
                 data[i] = new ChartData(i, hist[i]);
             }
             return MAPPER.writeValueAsString(data);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error JSON histogram", e);
+        }
+    }
+
+    public static String histToJsonC3(String color, int[] hist) {
+        try {
+            ChartDataC3 data = new ChartDataC3();
+            data.addSeries(color, hist);
+            return MAPPER.writeValueAsString(data);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error JSON histogram", e);
+        }
+    }
+
+    public static String histToJsonC3(int[] grayscale, int[] red, int[] green, int[] blue) {
+        try {
+            ChartDataC3 data = new ChartDataC3();
+            data.addSeries("grayscale", grayscale);
+            data.addSeries("red", red);
+            data.addSeries("green", green);
+            data.addSeries("blue", blue);
+            return MAPPER.writeValueAsString(data.columns);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Error JSON histogram", e);
         }

@@ -43,7 +43,8 @@ public class HistogramPage extends PubLayout {
         };
         add(new Image("origImg", origImgRes));
         add(new Label("uniqueColorCount", histogram.getUniqueColorCount()));
-        add(new HistogramPanel("grayscale", new Model<>(histogram.getGrayscale())));
+        add(new MultiHistogramPanel("histogram"));
+//        add(new HistogramPanel("grayscale", new Model<>(histogram.getGrayscale())));
         /*add(new HistogramPanel("red", new Model<>(histogram.getRed())));
         add(new HistogramPanel("green", new Model<>(histogram.getGreen())));
         add(new HistogramPanel("blue", new Model<>(histogram.getBlue())));*/
