@@ -2,6 +2,7 @@ package id.ac.itb.sigit.pengenalanpola;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bytedeco.javacpp.indexer.ByteIndexer;
 import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacpp.opencv_highgui;
 import org.slf4j.Logger;
@@ -16,10 +17,9 @@ import java.io.File;
 @Service
 public class Histogram {
 
-    private static Logger log = LoggerFactory.getLogger(Histogram.class);
-    private opencv_core.Mat imgMat;
-
     public static ObjectMapper MAPPER = new ObjectMapper();
+
+    private static Logger log = LoggerFactory.getLogger(Histogram.class);
 
     public static class ChartData {
         public int color;
@@ -43,11 +43,118 @@ public class Histogram {
         }
     }
 
+    private opencv_core.Mat origMat;
+    private opencv_core.Mat grayMat;
+    private int uniqueColorCount;
+    private int red[];
+    private int green[];
+    private int blue[];
+    private int grayscale[];
+
     public opencv_core.Mat loadInput(File imageFile) {
         log.info("Processing image file '{}' ...", imageFile);
-        imgMat = opencv_highgui.imread(imageFile.getPath());
-        log.info("Image mat: rows={} cols={}", imgMat.rows(), imgMat.cols());
-        return imgMat;
+        origMat = opencv_highgui.imread(imageFile.getPath());
+        log.info("Image mat: rows={} cols={}", origMat.rows(), origMat.cols());
+        return origMat;
     }
 
+    public opencv_core.Mat getOrigMat() {
+        return origMat;
+    }
+
+    byte[] getFGamaByte() {
+        byte[] fGamaByte = new byte[256];
+        for (int i = 0; i < 256; i++) {
+            fGamaByte[i] = (byte) fGama(i);
+        }
+        return fGamaByte;
+    }
+
+    int fGama(float indexWarna) {
+        double k = 7;
+        //  ((indexWarna/255)^(1/k))*255
+        return Math.round((float) Math.pow((indexWarna / 255f), 1 / k) * 255f);
+
+    }
+
+    public void run() {
+        grayMat = origMat.clone();
+        final ByteIndexer idx = origMat.createIndexer();
+        final ByteIndexer newIdx = grayMat.createIndexer();
+        try {
+//            byte[] imagByte = new byte[3];
+//            idx.get(0, 0, imagByte);
+//            log.info("Image {}", imagByte);
+
+            boolean colorCounts[][][] = new boolean[256][256][256];
+            uniqueColorCount = 0;
+            red = new int[256];
+            green = new int[256];
+            blue = new int[256];
+            grayscale = new int[256];
+
+            byte[] imagByte = new byte[3];
+            byte[] fGamaByte = getFGamaByte();
+
+            for (int y = 0; y < origMat.rows(); y++) {
+//                opencv_core.Mat scanline = origMat.row(i);
+                for (int x = 0; x < origMat.cols(); x++) {
+                    byte[] newImagByte = new byte[3];
+                    idx.get(y, x, imagByte);
+                    int b = Byte.toUnsignedInt(imagByte[0]);
+                    int g = Byte.toUnsignedInt(imagByte[1]);
+                    int r = Byte.toUnsignedInt(imagByte[2]);
+
+                    log.trace("Jumlah Warna R{} G{} B {}", r, g, b);
+
+                    if (!colorCounts[r][g][b]) {
+                        uniqueColorCount++;
+                    }
+                    colorCounts[r][g][b] = true;
+
+                    red[r]++;
+                    green[g]++;
+                    blue[b]++;
+                    int grayScale = Math.round((r + g + b) / 3f);
+                    grayscale[grayScale]++;
+
+                    //fgamma
+                    newImagByte[0] = fGamaByte[b];//(byte) fGama(b);
+                    newImagByte[1] = fGamaByte[g];//(byte) fGama(g);
+                    newImagByte[2] = fGamaByte[r];//(byte) fGama(r);
+
+                    newIdx.put(y, x, newImagByte);
+                }
+            }
+        } finally {
+            newIdx.release();
+            idx.release();
+        }
+
+        log.info("Jumlah Warna {}", uniqueColorCount);
+    }
+
+    public int getUniqueColorCount() {
+        return uniqueColorCount;
+    }
+
+    public int[] getRed() {
+        return red;
+    }
+
+    public int[] getGreen() {
+        return green;
+    }
+
+    public int[] getBlue() {
+        return blue;
+    }
+
+    public int[] getGrayscale() {
+        return grayscale;
+    }
+
+    public opencv_core.Mat getGrayMat() {
+        return grayMat;
+    }
 }
