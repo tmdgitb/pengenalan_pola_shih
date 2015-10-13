@@ -15,7 +15,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Profile;
 
+import javax.inject.Inject;
 import java.io.File;
+
+import static id.ac.itb.sigit.pengenalanpola.Histogram.histToJson;
 
 @SpringBootApplication
 @Profile("histogramapp")
@@ -33,32 +36,12 @@ public class HistogramApp implements CommandLineRunner {
                 .run(args);
     }
 
-    protected static class ChartData {
-        public int color;
-        public int frequency;
-
-        public ChartData(int color, int frequency) {
-            this.color = color;
-            this.frequency = frequency;
-        }
-    }
-
-    protected static ObjectMapper MAPPER = new ObjectMapper();
-
-    protected static String histToJson(int[] hist) throws JsonProcessingException {
-        ChartData[] data = new ChartData[hist.length];
-        for (int i = 0; i < hist.length; i++) {
-            data[i] = new ChartData(i, hist[i]);
-        }
-        return MAPPER.writeValueAsString(data);
-    }
+    @Inject
+    private Histogram histogram;
 
     @Override
     public void run(String... args) throws Exception {
-        final File imageFile = new File("Beach.jpg");
-        log.info("Processing image file '{}' ...", imageFile);
-        final opencv_core.Mat imgMat = opencv_highgui.imread(imageFile.getPath());
-        log.info("Image mat: rows={} cols={}", imgMat.rows(), imgMat.cols());
+        final opencv_core.Mat imgMat = histogram.loadInput(new File("Beach.jpg"));
 
         int jumlahWarna;
         int rImage[];

@@ -1,48 +1,10 @@
-<wicket:head>
-<style>
-    body {
-    font: 10px sans-serif;
-    }
-
-    .bar rect {
-    fill: steelblue;
-    shape-rendering: crispEdges;
-    }
-
-    .bar text {
-    fill: #fff;
-    }
-
-    .axis path, .axis line {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-    }
-</style>
-</wicket:head>
-<wicket:extend>
-<div layout:fragment="content" class="container">
-    <section class="page-header" id="banner">
-        <h1>Histogram</h1>
-        <p class="lead">Menghitung frekuensi kemunculan setiap warna</p>
-        <div class="row">
-            <div class="col-xs-12">
-            </div>
-        </div>
-    </section>
-    <section>
-        <div class="row">
-            <div class="col-md-6">
-                <p><strong>Original</strong></p>
-                <p><img wicket:id="origImg" class="img-responsive"/></p>
-            </div>
-            <div class="col-md-6">
-                Histogram
-
-                <script>
+<wicket:panel>
+<script wicket:id="values">
 // Generate a Bates distribution of 10 random variables.
 var values = [0, 0, 0, 234, 255, 255, 255];
+</script>
 
+<script>
 // A formatter for counts.
 var formatCount = d3.format(",.0f");
 
@@ -97,14 +59,5 @@ svg.append("g")
     .attr("class", "x axis")
     .attr("transform", "translate(0," + height + ")")
     .call(xAxis);
-
 </script>
-                <!--<p>Download on <a href="https://play.google.com/store/apps/details?id=com.gigastic.mobile">Google Play</a></p>
-                <div class="sponsor">
-                    <a href="http://gridgum.com/themes/category/bootstrap-themes/.png" alt="Gridgum"></a>
-                </div>-->
-            </div>
-        </div>
-    </section>
-</div>
-</wicket:extend>
+</wicket:panel>
