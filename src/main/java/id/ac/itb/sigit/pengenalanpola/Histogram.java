@@ -13,6 +13,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.bytedeco.javacpp.opencv_core.*;
+
 /**
  * Created by ceefour on 13/10/2015.
  */
@@ -33,7 +35,7 @@ public class Histogram {
             Object[] series = new Object[257];
             series[0] = color;
             for (int i = 0; i < hist.length; i++) {
-                series[1 + i] = hist[i];
+                series[1 + i] = hist[i] == 0 ? 0 : Math.log10(hist[i]);
             }
             columns.add(series);
         }
@@ -84,22 +86,29 @@ public class Histogram {
         }
     }
 
-    private opencv_core.Mat origMat;
-    private opencv_core.Mat grayMat;
+    private Mat origMat;
+    private Mat grayMat;
     private int uniqueColorCount;
     private int red[];
     private int green[];
     private int blue[];
     private int grayscale[];
 
-    public opencv_core.Mat loadInput(File imageFile) {
+    public Mat loadInput(File imageFile) {
         log.info("Processing image file '{}' ...", imageFile);
         origMat = opencv_highgui.imread(imageFile.getPath());
         log.info("Image mat: rows={} cols={}", origMat.rows(), origMat.cols());
         return origMat;
     }
 
-    public opencv_core.Mat getOrigMat() {
+    public Mat loadInput(String contentType, byte[] inputBytes) {
+        log.info("Processing input image {}: {} bytes ...", contentType, inputBytes.length);
+        origMat = opencv_highgui.imdecode(new Mat(inputBytes), opencv_highgui.CV_LOAD_IMAGE_COLOR);
+        log.info("Image mat: rows={} cols={}", origMat.rows(), origMat.cols());
+        return origMat;
+    }
+
+    public Mat getOrigMat() {
         return origMat;
     }
 
@@ -195,7 +204,7 @@ public class Histogram {
         return grayscale;
     }
 
-    public opencv_core.Mat getGrayMat() {
+    public Mat getGrayMat() {
         return grayMat;
     }
 }

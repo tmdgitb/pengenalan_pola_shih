@@ -32,12 +32,17 @@
     </section>
     <section>
         <div class="row">
-            <div class="col-md-6">
+            <form class="col-md-6" wicket:id="form">
                 <p><strong>Original</strong></p>
+                <div>
+                    <input type="file" wicket:id="fileFld" accept="image/*"/>
+                    <button class="button" wicket:id="loadBtn">Load</button>
+                </div>
                 <p><img wicket:id="origImg" class="img-responsive"/></p>
-            </div>
-            <div class="col-md-6">
+            </form>
+            <div class="col-md-6" wicket:id="resultDiv">
                 <p>Jumlah warna unik: <span wicket:id="uniqueColorCount">123</span></p>
+                <p>Histogram di bawah menggunakan nilai 10 log n</p>
                 <div wicket:id="histogram"></div>
 
                 <!--<p>Grayscale:</p>

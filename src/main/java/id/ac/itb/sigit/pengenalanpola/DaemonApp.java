@@ -14,7 +14,8 @@ public class DaemonApp implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(DaemonApp.class);
 
     public static void main(String[] args) {
-        new SpringApplicationBuilder(DaemonApp.class).profiles("daemonApp")
+        new SpringApplicationBuilder(DaemonApp.class)
+                .profiles("daemonApp")
                 .web(true)
                 .run(args);
     }
