@@ -2,7 +2,8 @@ package id.ac.itb.sigit.pengenalanpola.web;
 
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.extensions.markup.html.bootstrap.ladda.LaddaAjaxButton;
-import id.ac.itb.sigit.pengenalanpola.Histogram;
+import id.ac.itb.sigit.pengenalanpola.ChainCode;
+import id.ac.itb.sigit.pengenalanpola.ChainCodeService;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -10,6 +11,9 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.markup.html.image.Image;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
@@ -22,68 +26,68 @@ import org.slf4j.LoggerFactory;
 import org.wicketstuff.annotation.mount.MountPath;
 
 import javax.inject.Inject;
-import java.io.File;
+import java.util.*;
 
-@MountPath("histogram")
-public class HistogramPage extends PubLayout {
-    private static final Logger log = LoggerFactory.getLogger(HistogramPage.class);
+@MountPath("chaincode")
+public class ChainCodePage extends PubLayout {
+    private static final Logger log = LoggerFactory.getLogger(ChainCodePage.class);
 
     @Inject
-    private Histogram histogram;
+    private ChainCodeService chainCodeService;
 
-    public HistogramPage(PageParameters parameters) {
+
+    public ChainCodePage(PageParameters parameters) {
         super(parameters);
-        histogram.loadInput(new File("Beach.jpg"));
-        histogram.run();
 
-        final WebMarkupContainer resultDiv = new WebMarkupContainer("resultDiv");
-        resultDiv.setOutputMarkupId(true);
-        resultDiv.add(new Label("uniqueColorCount", histogram.getUniqueColorCount()));
-        resultDiv.add(new MultiHistogramPanel("histogram"));
-        add(resultDiv);
-//        add(new HistogramPanel("grayscale", new Model<>(histogram.getGrayscale())));
-        /*add(new HistogramPanel("red", new Model<>(histogram.getRed())));
-        add(new HistogramPanel("green", new Model<>(histogram.getGreen())));
-        add(new HistogramPanel("blue", new Model<>(histogram.getBlue())));*/
-
-//        final DropZoneFileUpload fileFld = new DropZoneFileUpload("fileFld") {
-//            @Override
-//            protected void onUpload(AjaxRequestTarget ajaxRequestTarget, Map<String, List<FileItem>> map) {
-//                final FileItem first = map.values().iterator().next().get(0);
-//                HistogramPage.this.histogram.loadInput(first.getContentType(), first.get());
-//                HistogramPage.this.histogram.run();
-//                ajaxRequestTarget.add(origImg, resultDiv);
-//                info("Loaded file " + first.getName() + " (" + first.getContentType() + ")");
-//            }
-//        };
         final Form<Void> form = new Form<>("form");
-        final DynamicImageResource origImgRes = new DynamicImageResource("png") {
-            @Override
-            protected byte[] getImageData(Attributes attributes) {
-                final BytePointer bufPtr = new BytePointer();
-                opencv_highgui.imencode(".png", histogram.getOrigMat(), bufPtr);
-                log.info("PNG Image: {} bytes", bufPtr.capacity());
-                final byte[] buf = new byte[bufPtr.capacity()];
-                bufPtr.get(buf);
-                return buf;
-            }
-        };
-        final Image origImg = new Image("origImg", origImgRes);
-        origImg.setOutputMarkupId(true);
-        form.add(origImg);
 
         final ListModel<FileUpload> filesModel = new ListModel<>();
         final FileUploadField fileFld = new FileUploadField("fileFld", filesModel);
         form.add(fileFld);
+
+        final DynamicImageResource origImgRes = new DynamicImageResource("png") {
+            @Override
+            protected byte[] getImageData(Attributes attributes) {
+                final BytePointer bufPtr = new BytePointer();
+                opencv_highgui.imencode(".png", chainCodeService.getOrigMat(), bufPtr);
+                log.info("PNG Image: {} bytes", bufPtr.capacity());
+                final byte[] buf = new byte[bufPtr.capacity()];
+                bufPtr.get(buf);
+                return  buf;
+            }
+        };
+        final Image origImg = new Image("origImg",origImgRes);
+        origImg.setOutputMarkupId(true);
+        form.add(origImg);
+
+        final WebMarkupContainer listchaincode=new WebMarkupContainer("listchaincode");
+        listchaincode.setOutputMarkupId(true);
+
+        IModel< List<ChainCode>> listModel = new AbstractReadOnlyModel<List<ChainCode>>() {
+            @Override
+            public List<ChainCode> getObject() {
+                return chainCodeService.getChainCode();
+            }
+        } ;
+        ListView<ChainCode> listview = new ListView<ChainCode>("listview", listModel) {
+            protected void populateItem(ListItem<ChainCode> item) {
+                ChainCode chainCode =  item.getModelObject();
+                item.add(new Label("chaincode",chainCode.getChainCode()));
+            }
+        };
+
+        listchaincode.add(listview);
+        add(listchaincode);
+
+
         form.add(new LaddaAjaxButton("loadBtn", new Model<>("Load"), Buttons.Type.Default) {
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 super.onSubmit(target, form);
                 final FileUpload first = filesModel.getObject().get(0);
-                histogram.loadInput(first.getContentType(), first.getBytes());
-                histogram.run();
+                chainCodeService.loadInput(first.getContentType(), first.getBytes());
                 info("Loaded file " + first.getClientFileName() + " (" + first.getContentType() + ")");
-                target.add(origImg, resultDiv, notificationPanel);
+                target.add(origImg,listchaincode, notificationPanel);
             }
         });
         add(form);
@@ -91,12 +95,11 @@ public class HistogramPage extends PubLayout {
 
     @Override
     public IModel<String> getTitleModel() {
-        return new Model<>("Histogram | Pengenalan Pola SHIH");
+        return new Model<>("Pengenalan Pola SHIH: Meraba citra, mencari arti.");
     }
 
     @Override
     public IModel<String> getMetaDescriptionModel() {
         return new Model<>("Pengenalan Pola SHIH: Meraba citra, mencari arti.");
     }
-
 }

@@ -14,7 +14,7 @@ import java.util.List;
  * Created by Sigit on 03/10/2015.
  */
 public class ChainCodeWhiteConverter {
-    private static final Logger log = LoggerFactory.getLogger(HistogramApp.class);
+    private static final Logger log = LoggerFactory.getLogger(ChainCodeWhiteConverter.class);
     private boolean flag[][];
     private int toleransiWhite = 230, toleransi = 150;
     private boolean searchObject = true, searchSubObject = false;
@@ -36,6 +36,7 @@ public class ChainCodeWhiteConverter {
     public ChainCodeWhiteConverter(opencv_core.Mat data, String msg) {
         imgMat = data;
         chainCodes = new ArrayList<>();
+        log.info("ukuran gambar {}{}", imgMat.size().height(), imgMat.size().width());
     }
 
     public List<ChainCode> getChainCode() {
@@ -55,6 +56,7 @@ public class ChainCodeWhiteConverter {
                     maxHor = x;
                     String chaincode = prosesChaincode(y, x, 3, imgMat, 1);
                     ChainCode chainCode = new ChainCode();
+
                     String kodeBelok = getKodeBelok(chaincode);
                     chainCode.setChainCode(chaincode);
                     chainCode.setKodeBelok(kodeBelok);
@@ -74,12 +76,18 @@ public class ChainCodeWhiteConverter {
                 }
 
                 if (grayScale > toleransiWhite && flag[y][x]) {
-                    int grayScale1 = Byte.toUnsignedInt(imgIdx.get(y, x + 1));
-
-                    if (grayScale1 < toleransiWhite) {
+                    if((x+1) >= imgMat.cols())
+                    {
                         searchObject = true;
-                    } else {
-                        searchObject = false;
+                    }
+                    else {
+                        int grayScale1 = Byte.toUnsignedInt(imgIdx.get(y, x + 1));
+
+                        if (grayScale1 < toleransiWhite) {
+                            searchObject = true;
+                        } else {
+                            searchObject = false;
+                        }
                     }
                 }
             }
@@ -93,8 +101,8 @@ public class ChainCodeWhiteConverter {
 
         final ByteIndexer imgIdx = imgMat.createIndexer();
         try {
-            for (int y = minVer; y <= maxVer; y++) {
-                for (int x = minHor; x <= maxHor; x++) {
+            for (int y = minVer; y < maxVer; y++) {
+                for (int x = minHor; x < maxHor; x++) {
                     final int grayScale = Byte.toUnsignedInt(imgIdx.get(y, x));
                     final int nextGrayScale = Byte.toUnsignedInt(imgIdx.get(y, x + 1));
                     if (grayScale > toleransiWhite && flag[y][x]) {
@@ -511,6 +519,10 @@ public class ChainCodeWhiteConverter {
         int temprow, tempcol;
         temprow = row - 1;
         tempcol = col;
+
+        if(!cekRowAndCol(temprow,tempcol))
+            return "";
+
         final int gray1 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray1 > toleransiWhite) {
@@ -529,6 +541,9 @@ public class ChainCodeWhiteConverter {
         int temprow, tempcol;
         temprow = row - 1;
         tempcol = col + 1;
+        if(!cekRowAndCol(temprow,tempcol))
+            return "";
+
         final int gray2 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray2 > toleransiWhite) {
@@ -547,6 +562,9 @@ public class ChainCodeWhiteConverter {
         int temprow, tempcol;
         temprow = row;
         tempcol = col + 1;
+        if(!cekRowAndCol(temprow,tempcol))
+            return "";
+
         final int gray3 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray3 > toleransiWhite) {
@@ -566,6 +584,9 @@ public class ChainCodeWhiteConverter {
         int temprow, tempcol;
         temprow = row + 1;
         tempcol = col + 1;
+        if(!cekRowAndCol(temprow,tempcol))
+            return "";
+
         final int gray4 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray4 > toleransiWhite) {
@@ -585,6 +606,8 @@ public class ChainCodeWhiteConverter {
         int temprow, tempcol;
         temprow = row + 1;
         tempcol = col;
+        if(!cekRowAndCol(temprow,tempcol))
+            return "";
         final int gray5 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray5 > toleransiWhite) {
@@ -604,6 +627,9 @@ public class ChainCodeWhiteConverter {
         int temprow, tempcol;
         temprow = row + 1;
         tempcol = col - 1;
+        if(!cekRowAndCol(temprow,tempcol))
+            return "";
+
         final int gray6 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray6 > toleransiWhite) {
@@ -623,6 +649,9 @@ public class ChainCodeWhiteConverter {
         int temprow, tempcol;
         temprow = row;
         tempcol = col - 1;
+        if(!cekRowAndCol(temprow,tempcol))
+            return "";
+
         final int gray7 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray7 > toleransiWhite) {
@@ -642,6 +671,9 @@ public class ChainCodeWhiteConverter {
         int temprow, tempcol;
         temprow = row - 1;
         tempcol = col - 1;
+        if(!cekRowAndCol(temprow,tempcol))
+            return "";
+
         final int gray8 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray8 > toleransiWhite) {
@@ -711,6 +743,13 @@ public class ChainCodeWhiteConverter {
             }
         }
         return kodeBelok;
+    }
+
+    private  boolean cekRowAndCol(int row,int col)
+    {
+        if(row <0 || col <0 || row >= imgMat.rows() || col >= imgMat.cols())
+            return false;
+        return true;
     }
 
 }

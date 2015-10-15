@@ -11,6 +11,8 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Profile;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Sigit on 18/09/2015.
@@ -28,6 +30,9 @@ public class ChainCodeApp implements CommandLineRunner {
     /**
      * variable
      */
+
+
+   ChainCode data= new ChainCode();
 
     private boolean flag[][];
     private int toleransi = 10, toleransiWhite = 100;
@@ -47,49 +52,61 @@ public class ChainCodeApp implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        final File imageFile = new File("angka.jpg");//AA_1.jpg
-        log.info("Processing image file '{}' ...", imageFile);
-        final opencv_core.Mat mat = opencv_highgui.imread(imageFile.getPath(), opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
-        log.info("Image mat: rows={} cols={}", mat.rows(), mat.cols());
 
-        flag = new boolean[mat.rows()][mat.cols()];
-        int objectIdx = 0;
 
-        final ByteIndexer idx = mat.createIndexer();
-        try {
-            for (int y = 0; y < mat.rows(); y++) {
-                for (int x = 0; x < mat.cols(); x++) {
-                    int grayScale = Byte.toUnsignedInt(idx.get(y, x));
+        final File imageFile = new File("AA.jpg");//AA_1.jpg
+        ChainCodeService chainCodeService=new ChainCodeService();
+        chainCodeService.loadInput(imageFile,1);
+        data=chainCodeService.getChainCode().get(0);
+        data.setCharacter("1");
 
-                    if (grayScale < toleransi && searchObject && !flag[y][x]) {
+        log.info("Chaincode char #{} = {}", data.getCharacter(),data.getChainCode());
 
-                        minVer = y;
-                        maxVer = y;
-                        minHor = x;
-                        maxHor = x;
-                        String chaincode = prosesChaincode(y, x, 3, mat, idx, 0);
-                        if (chaincode.length() > 20) {
-                            log.info("Chaincode object #{} at ({}, {}): {}", objectIdx, x, y, chaincode);
-                            objectIdx++;
-                            subObject(mat, idx);
-                        }
-                        searchObject = false;
-                    }
 
-                    if (grayScale < toleransi && flag[y][x]) {
-                        int grayScale1 = Byte.toUnsignedInt(idx.get(y, x + 1));
 
-                        if (grayScale1 > toleransi) {
-                            searchObject = true;
-                        } else {
-                            searchObject = false;
-                        }
-                    }
-                }
-            }
-        } finally {
-            idx.release();
-        }
+//        final File imageFile = new File("angka.jpg");//AA_1.jpg
+//        log.info("Processing image file '{}' ...", imageFile);
+//        final opencv_core.Mat mat = opencv_highgui.imread(imageFile.getPath(), opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
+//        log.info("Image mat: rows={} cols={}", mat.rows(), mat.cols());
+//
+//        flag = new boolean[mat.rows()][mat.cols()];
+//        int objectIdx = 0;
+//
+//        final ByteIndexer idx = mat.createIndexer();
+//        try {
+//            for (int y = 0; y < mat.rows(); y++) {
+//                for (int x = 0; x < mat.cols(); x++) {
+//                    int grayScale = Byte.toUnsignedInt(idx.get(y, x));
+//
+//                    if (grayScale < toleransi && searchObject && !flag[y][x]) {
+//
+//                        minVer = y;
+//                        maxVer = y;
+//                        minHor = x;
+//                        maxHor = x;
+//                        String chaincode = prosesChaincode(y, x, 3, mat, idx, 0);
+//                        if (chaincode.length() > 20) {
+//                            log.info("Chaincode object #{} at ({}, {}): {}", objectIdx, x, y, chaincode);
+//                            objectIdx++;
+//                            subObject(mat, idx);
+//                        }
+//                        searchObject = false;
+//                    }
+//
+//                    if (grayScale < toleransi && flag[y][x]) {
+//                        int grayScale1 = Byte.toUnsignedInt(idx.get(y, x + 1));
+//
+//                        if (grayScale1 > toleransi) {
+//                            searchObject = true;
+//                        } else {
+//                            searchObject = false;
+//                        }
+//                    }
+//                }
+//            }
+//        } finally {
+//            idx.release();
+//        }
     }
 
     private void subObject(opencv_core.Mat mat, ByteIndexer idx) {
