@@ -3,6 +3,7 @@ package id.ac.itb.sigit.pengenalanpola.web;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.extensions.markup.html.bootstrap.ladda.LaddaAjaxButton;
 import id.ac.itb.sigit.pengenalanpola.Histogram;
+import org.apache.commons.io.FileUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -25,6 +26,7 @@ import org.wicketstuff.annotation.mount.MountPath;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
 
 import static org.bytedeco.javacpp.opencv_core.*;
 
@@ -35,9 +37,11 @@ public class HistogramPage extends PubLayout {
     private Histogram histogram = new Histogram();
     private byte[] origBytes;
 
-    public HistogramPage(PageParameters parameters) {
+    public HistogramPage(PageParameters parameters) throws IOException {
         super(parameters);
-        histogram.loadInput(new File("Beach.jpg"));
+        final File initialFile = new File("Beach.jpg");
+        histogram.loadInput(initialFile);
+        origBytes = FileUtils.readFileToByteArray(initialFile);
 
         final WebMarkupContainer resultDiv = new WebMarkupContainer("resultDiv");
         resultDiv.setOutputMarkupId(true);

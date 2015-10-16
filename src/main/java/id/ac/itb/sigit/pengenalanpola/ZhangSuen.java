@@ -112,6 +112,7 @@ public class ZhangSuen {
         return image;
     }
 
+
     private int displacementBgToFg() {
         int count = 0;
         for (int i = 1; i < p.length; i++) {

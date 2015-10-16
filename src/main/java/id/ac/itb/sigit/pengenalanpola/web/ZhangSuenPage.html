@@ -1,0 +1,52 @@
+<wicket:head>
+    <style>
+        body {
+        font: 10px sans-serif;
+        }
+
+        .bar rect {
+        fill: steelblue;
+        shape-rendering: crispEdges;
+        }
+
+        .bar text {
+        fill: #fff;
+        }
+
+        .axis path, .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+        }
+    </style>
+</wicket:head>
+<wicket:extend>
+    <div layout:fragment="content" class="container">
+        <section class="page-header" id="banner">
+            <h1>Histogram</h1>
+
+            <p class="lead">Zhang Suen</p>
+
+            <div class="row">
+                <div class="col-xs-12">
+                </div>
+            </div>
+        </section>
+        <section>
+            <div class="row">
+                <form class="col-md-6" wicket:id="form">
+                    <p><strong>Original</strong></p>
+
+                    <div>
+                        <input type="file" wicket:id="fileFld" accept="image/*"/>
+                        <button class="button" wicket:id="loadBtn">Load</button>
+                    </div>
+                    <p><img wicket:id="origImg" class="img-responsive"/></p>
+
+
+                </form>
+            </div>
+
+        </section>
+    </div>
+</wicket:extend>
