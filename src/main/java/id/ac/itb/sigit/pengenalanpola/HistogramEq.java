@@ -16,7 +16,7 @@ import static org.bytedeco.javacpp.opencv_core.*;
 /**
  * Created by ilham on 16/10/2015.
  */
-public class HistogramEq implements Serializable {
+public class HistogramEq implements Serializable, Histogramable {
 
     public static ObjectMapper MAPPER = new ObjectMapper();
 
@@ -202,6 +202,11 @@ public class HistogramEq implements Serializable {
 
     public int[] getGrayscale() {
         return grayscale;
+    }
+
+    @Override
+    public int[] getCumulative() {
+        return grayscale2;
     }
 
     public int[] getGrayscale2() {

@@ -4,6 +4,7 @@ import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.extensions.markup.html.bootstrap.ladda.LaddaAjaxButton;
 import id.ac.itb.sigit.pengenalanpola.Histogram;
 import id.ac.itb.sigit.pengenalanpola.HistogramEq;
+import id.ac.itb.sigit.pengenalanpola.Histogramable;
 import org.apache.commons.io.FileUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -60,6 +61,13 @@ public class EqualizationPage  extends PubLayout {
             }
         }));
 
+        resultDiv.add(new CumuHistPanel("cumuHist", new AbstractReadOnlyModel<Histogram>() {
+            @Override
+            public Histogram getObject() {
+                return histogram2;
+            }
+        }));
+
         final DynamicImageResource eqImgRes = new DynamicImageResource("png") {
             @Override
             protected byte[] getImageData(Attributes attributes) {
@@ -71,21 +79,7 @@ public class EqualizationPage  extends PubLayout {
         resultDiv.add(eqImg);
 
         add(resultDiv);
-//        add(new HistogramPanel("grayscale", new Model<>(histogram.getGrayscale())));
-        /*add(new HistogramPanel("red", new Model<>(histogram.getRed())));
-        add(new HistogramPanel("green", new Model<>(histogram.getGreen())));
-        add(new HistogramPanel("blue", new Model<>(histogram.getBlue())));*/
 
-//        final DropZoneFileUpload fileFld = new DropZoneFileUpload("fileFld") {
-//            @Override
-//            protected void onUpload(AjaxRequestTarget ajaxRequestTarget, Map<String, List<FileItem>> map) {
-//                final FileItem first = map.values().iterator().next().get(0);
-//                HistogramPage.this.histogram.loadInput(first.getContentType(), first.get());
-//                HistogramPage.this.histogram.run();
-//                ajaxRequestTarget.add(origImg, resultDiv);
-//                info("Loaded file " + first.getName() + " (" + first.getContentType() + ")");
-//            }
-//        };
         final Form<Void> form = new Form<>("form");
         final DynamicImageResource origImgRes = new DynamicImageResource("png") {
             @Override
@@ -104,16 +98,20 @@ public class EqualizationPage  extends PubLayout {
                 }
             }
         };
+
+        final WebMarkupContainer origDiv = new WebMarkupContainer("origDiv");
+        origDiv.setOutputMarkupId(true);
         final Image origImg = new Image("origImg", origImgRes);
         origImg.setOutputMarkupId(true);
-        form.add(origImg);
+        origDiv.add(origImg);
 
-        form.add(new MultiHistogramPanel("origHistogram", new AbstractReadOnlyModel<Histogram>() {
+        origDiv.add(new MultiHistogramPanel("origHistogram", new AbstractReadOnlyModel<Histogram>() {
             @Override
             public Histogram getObject() {
                 return histogram1;
             }
         }));
+        add(origDiv);
 
         final ListModel<FileUpload> filesModel = new ListModel<>();
         final FileUploadField fileFld = new FileUploadField("fileFld", filesModel);

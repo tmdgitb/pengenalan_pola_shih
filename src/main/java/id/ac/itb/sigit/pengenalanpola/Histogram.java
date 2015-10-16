@@ -19,7 +19,7 @@ import static org.bytedeco.javacpp.opencv_core.*;
 /**
  * Created by ceefour on 13/10/2015.
  */
-public class Histogram implements Serializable {
+public class Histogram implements Serializable, Histogramable {
 
     public static ObjectMapper MAPPER = new ObjectMapper();
 
@@ -93,6 +93,7 @@ public class Histogram implements Serializable {
     private int green[];
     private int blue[];
     private int grayscale[];
+    private int grayscale2[];
 
     public Mat loadInput(File imageFile) {
         log.info("Processing image file '{}' ...", imageFile);
@@ -151,6 +152,7 @@ public class Histogram implements Serializable {
             green = new int[256];
             blue = new int[256];
             grayscale = new int[256];
+            grayscale2 = new int[256];
 
             byte[] imagByte = new byte[3];
             byte[] fGamaByte = getFGamaByte();
@@ -185,6 +187,19 @@ public class Histogram implements Serializable {
                     grayIdx.put(y, x, newImagByte);
                 }
             }
+
+            int mass = origMat.cols() * origMat.rows();
+            int sum = 0;
+            //calculate the scale factor
+            float pxScale = (float) 255.0 / mass;
+
+            //make CDF
+            for (int i = 0; i < grayscale.length; i++){
+                sum += grayscale[i];
+                int value = (int) (pxScale * sum);
+                if (value > 255) { value = 255; }
+                grayscale2[i] = value;
+            }
         } finally {
             grayIdx.release();
             idx.release();
@@ -211,6 +226,15 @@ public class Histogram implements Serializable {
 
     public int[] getGrayscale() {
         return grayscale;
+    }
+
+    public int[] getGrayscale2() {
+        return grayscale2;
+    }
+
+    @Override
+    public int[] getCumulative() {
+        return new int[0];
     }
 
 //    public Mat getGrayMat() {

@@ -4,6 +4,10 @@
         font: 10px sans-serif;
         }
 
+        .input-form{
+        margin-bottom: 20px;
+        }
+
         .bar rect {
         fill: steelblue;
         shape-rendering: crispEdges;
@@ -23,32 +27,32 @@
 <wicket:extend>
     <div layout:fragment="content" class="container">
         <section class="page-header" id="banner">
-            <h1>Histogram</h1>
-            <p class="lead">Menghitung frekuensi kemunculan setiap level elemen warna</p>
+            <h1>Histogram Equalization</h1>
+            <p class="lead">Menyesuaikan intensitas gambar untuk meningkatkan kontras.</p>
             <div class="row">
                 <div class="col-xs-12">
                 </div>
             </div>
         </section>
         <section>
+            <form wicket:id="form" class="input-form">
+                <p><strong>Original</strong></p>
+                <div>
+                    <input type="file" wicket:id="fileFld" accept="image/*"/>
+                    <button class="button" wicket:id="loadBtn">Load</button>
+                </div>
+            </form>
             <div class="row">
-                <div  class="col-md-6">
-                    <form wicket:id="form">
-                        <p><strong>Original</strong></p>
-                        <div>
-                            <input type="file" wicket:id="fileFld" accept="image/*"/>
-                            <button class="button" wicket:id="loadBtn">Load</button>
-                        </div>
-                        <p><img wicket:id="origImg" class="img-responsive"/></p>
-                        <div wicket:id="origHistogram"></div>
-                    </form>
-
+                <div  class="col-md-6" wicket:id="origDiv">
+                    <p><img wicket:id="origImg" class="img-responsive"/></p>
+                    <div wicket:id="origHistogram"></div>
                 </div>
                 <div class="col-md-6" wicket:id="resultDiv">
                     <p><img wicket:id="eqImg" class="img-responsive"/></p>
                     <!--<p>Jumlah warna unik: <span wicket:id="uniqueColorCount">123</span></p>-->
                     <p>Histogram di bawah menggunakan nilai 10 log n</p>
                     <div wicket:id="histogram"></div>
+                    <div wicket:id="cumuHist"></div>
 
                     <!--<p>Grayscale:</p>
                     <div wicket:id="grayscale"></div>
