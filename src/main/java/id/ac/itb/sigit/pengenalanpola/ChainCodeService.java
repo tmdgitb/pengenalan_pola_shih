@@ -1,6 +1,5 @@
 package id.ac.itb.sigit.pengenalanpola;
 
-import org.bytedeco.javacpp.indexer.ByteIndexer;
 import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacpp.opencv_highgui;
 import org.bytedeco.javacpp.opencv_imgproc;
@@ -23,7 +22,7 @@ public class ChainCodeService {
     private opencv_core.Mat origMat;
 
     List<CharDef> charDefs = new ArrayList<>();
-    List<ChainCode> data = new ArrayList<>();
+    List<Geometry> data = new ArrayList<>();
 
     // Input file
     public opencv_core.Mat loadInput(File imageFile) {
@@ -80,7 +79,7 @@ public class ChainCodeService {
         log.info("size chaincode {}", data.size());
     }
 
-    public List<ChainCode> getChainCode() {
+    public List<Geometry> getChainCode() {
         return data;
     }
 

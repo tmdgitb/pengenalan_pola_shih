@@ -36,6 +36,11 @@ mvn deploy:deploy-file -DrepositoryId=soluvas-public-thirdparty -Durl=http://nex
 
         sudo ln -sv /usr/lib/jni/libopencv_java248.so /usr/lib
 
+## IntelliJ Run/Console Encoding Troubleshooting
+
+If you get weird characters instead of proper Unicode chaincode "↓↘↓↓↘↓↘↓↘↓↓↘↓↓",
+set Settings → File Encoding → Project Encoding → IDE Encoding, select UTF-8.
+
 ## ChainCodeApp
 
 Before Freeman (FCCE):
@@ -52,4 +57,12 @@ Before Freeman (FCCE):
 
 After Freeman (FCCE):
 
-TODO
+    Processing image file 'AA.jpg' ...
+    Image mat: rows=96 cols=149 depth=0 type=16
+    ukuran gambar 96149
+    Chaincode object #0 at (34, 21): →→→→→→→→→→↓↘↓↓↘↓↘↓↘↓↓↘↓↓↘↓↘↓↘↓↓↘↓↓↘↓↘↓↓↘↓↘↓↓↘↓↓↘↓↘↓↘↓↓↘↓↓↘↓↘←←←←←←←←←←↑↖↑↑↖↑↑↖↑↑↖↖←←←←←←←←←←←←←←←←←←←←↙↙↓↓↓↙↓↙↓↓↙↓←←←←←←←←←↑↑↗↑↗↑↑↗↑↑↗↑↗↑↑↗↑↗↑↑↗↑↑↗↑↑↗↑↗↑↑↗↑↑↗↑↗↑↑↗↑↗↑↑↗↑↑↗↑↗
+    Chaincode subobject : ↓↘↓↓↘↓↓↘↓↘↓↓↘↓↓↘↓↓←←←←←←←←←←←←↑↑↑↗↑↗↑↑↗↑↑↗↑↗↑↑↗
+    Chaincode object #1 at (103, 21): →→→→→→→→→→↓↘↓↘↓↓↘↓↘↓↓↘↓↓↘↓↘↓↘↓↓↘↓↓↘↓↘↓↓↘↓↘↓↓↘↓↘↓↓↘↓↓↘↓↘↓↓↘↓↘←←←←←←←←←←↑↑↖↑↖↑↑↖↑↑↖↖←←←←←←←←←←←←←←←←←←←←↙↙↓↓↙↓↓↙↓↓↙↓←←←←←←←←←↑↑↗↑↗↑↑↗↑↑↗↑↗↑↑↗↑↗↑↑↗↑↑↗↑↗↑↑↗↑↑↗↑↗↑↑↗↑↑↗↑↗↑↑↗↑↑↗↑↗
+    Chaincode subobject : ↓↘↓↓↘↓↓↘↓↘↓↓↘↓↓↘↓↓←←←←←←←←←←←←↑↑↑↗↑↗↑↑↗↑↑↗↑↑↗↑↗
+    size chaincode 2
+    Chaincode char #1 = 00000000006766767676676676767667667676676766766767676676676744444444442322322322334444444444444444444455666565665644444444422121221221212212122122122121221221212212122122121

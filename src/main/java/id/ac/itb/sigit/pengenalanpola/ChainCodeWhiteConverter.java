@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by Sigit on 03/10/2015.
@@ -20,7 +19,7 @@ public class ChainCodeWhiteConverter {
     private boolean searchObject = true, searchSubObject = false;
     private int minHor = 0, maxHor = 0, minVer = 0, maxVer = 0;
     private opencv_core.Mat imgMat;
-    public List<ChainCode> chainCodes;
+    public List<Geometry> geometries;
 
     /**
      * @param data MUST BE GRAYSCALE
@@ -35,11 +34,11 @@ public class ChainCodeWhiteConverter {
      */
     public ChainCodeWhiteConverter(opencv_core.Mat data, String msg) {
         imgMat = data;
-        chainCodes = new ArrayList<>();
+        geometries = new ArrayList<>();
         log.info("ukuran gambar {}{}", imgMat.size().height(), imgMat.size().width());
     }
 
-    public List<ChainCode> getChainCode() {
+    public List<Geometry> getChainCode() {
         flag = new boolean[imgMat.rows()][imgMat.cols()];
         int objectIdx = 0;
 
@@ -54,23 +53,23 @@ public class ChainCodeWhiteConverter {
                     maxVer = y;
                     minHor = x;
                     maxHor = x;
-                    List<String> chainCodeStrs = prosesChaincode(y, x, 3, imgMat, 1);
-                    ChainCode chainCode = new ChainCode();
+                    final AbsChainCode absChainCode = new AbsChainCode(prosesChaincode(y, x, 3, imgMat, 1));
+                    Geometry geometry = new Geometry();
 
-                    String kodeBelok = getKodeBelok(chainCodeStrs.stream().collect(Collectors.joining()));
-                    chainCode.setChainCodeStr(chainCodeStrs.stream().collect(Collectors.joining()));
-                    chainCode.setKodeBelok(kodeBelok);
-                    chainCode.setX(x);
-                    chainCode.setY(y);
+                    String kodeBelok = calculateKodeBelok(absChainCode.getFcce());
+                    geometry.setAbsChainCode(absChainCode);
+                    geometry.setKodeBelok(kodeBelok);
+                    geometry.setX(x);
+                    geometry.setY(y);
 
-                    if (chainCodeStrs.size() > 20) {
-                        log.info("Chaincode object #{} at ({}, {}): {}", objectIdx, x, y, chainCodeStrs);
+                    if (absChainCode.getDirs().size() > 20) {
+                        log.info("Chaincode object #{} at ({}, {}): {}", objectIdx, x, y, absChainCode);
                         objectIdx++;
-                        List<ChainCode> subChainCodes = subObject(imgMat);
-                        if (subChainCodes.size() > 0) {
-                            chainCode.getSubChainCode().addAll(subChainCodes);
+                        List<Geometry> subGeometries = subObject(imgMat);
+                        if (subGeometries.size() > 0) {
+                            geometry.getSubGeometry().addAll(subGeometries);
                         }
-                        chainCodes.add(chainCode);
+                        geometries.add(geometry);
                     }
                     searchObject = false;
                 }
@@ -93,11 +92,11 @@ public class ChainCodeWhiteConverter {
             }
         }
 
-        return chainCodes;
+        return geometries;
     }
 
-    private List<ChainCode> subObject(opencv_core.Mat imgMat) {
-        List<ChainCode> subChainCodes = new ArrayList<>();
+    private List<Geometry> subObject(opencv_core.Mat imgMat) {
+        List<Geometry> subGeometries = new ArrayList<>();
 
         final ByteIndexer imgIdx = imgMat.createIndexer();
         try {
@@ -114,11 +113,11 @@ public class ChainCodeWhiteConverter {
                     }
 
                     if (grayScale < toleransi && searchSubObject && !flag[y][x]) {
-                        List<String> chaincode2 = prosesChaincode(y, x, 3, imgMat, 0);
+                        final AbsChainCode chaincode2 = new AbsChainCode(prosesChaincode(y, x, 3, imgMat, 0));
 
-                        ChainCode subChainCode = new ChainCode();
-                        subChainCode.setChainCodeStr(chaincode2.stream().collect(Collectors.joining()));
-                        subChainCodes.add(subChainCode);
+                        final Geometry subGeometry = new Geometry();
+                        subGeometry.setAbsChainCode(chaincode2);
+                        subGeometries.add(subGeometry);
 
                         //charDef.getSubChainCode().add(chaincode2);
                         log.info("Chaincode subobject : {}", chaincode2);
@@ -138,10 +137,10 @@ public class ChainCodeWhiteConverter {
             imgIdx.release();
         }
 
-        return subChainCodes;
+        return subGeometries;
     }
 
-    private List<String> prosesChaincode(int row, int col, int arah, opencv_core.Mat imgMat, int mode) {
+    private List<AbsDirection> prosesChaincode(int row, int col, int arah, opencv_core.Mat imgMat, int mode) {
         if (flag[row][col]) {
             return ImmutableList.of();
         }
@@ -155,14 +154,14 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 7 (samping kiri)
                 //
-                List<String> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
                 if (!arahW.isEmpty()) {
                     return arahW;
                 }
                 //
                 //cek arah 8
                 //
-                List<String> arahNW = objectarahNW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahNW = objectarahNW(row, col, imgMat, imgIdx, mode);
                 if (!arahNW.isEmpty()) {
                     return arahNW;
                 }
@@ -170,7 +169,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 1 (depan)
                 //
-                List<String> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
                 if (!arahN.isEmpty()) {
                     return arahN;
                 }
@@ -178,7 +177,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 2
                 //
-                List<String> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
                 if (!arahNE.isEmpty()) {
                     return arahNE;
                 }
@@ -187,7 +186,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 3
                 //
-                List<String> arahE = objectarahE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahE = objectarahE(row, col, imgMat, imgIdx, mode);
                 if (!arahE.isEmpty()) {
                     return arahE;
                 }
@@ -198,7 +197,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 8 (samping kiri)
                 //
-                List<String> arahNW = objectarahNW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahNW = objectarahNW(row, col, imgMat, imgIdx, mode);
                 if (!arahNW.isEmpty()) {
                     return arahNW;
                 }
@@ -206,7 +205,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 1 (depan)
                 //
-                List<String> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
                 if (!arahN.isEmpty()) {
                     return arahN;
                 }
@@ -214,7 +213,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 2
                 //
-                List<String> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
                 if (!arahNE.isEmpty()) {
                     return arahNE;
                 }
@@ -223,7 +222,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 3
                 //
-                List<String> arahE = objectarahE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahE = objectarahE(row, col, imgMat, imgIdx, mode);
                 if (!arahE.isEmpty()) {
                     return arahE;
                 }
@@ -231,7 +230,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 4
                 //
-                List<String> arahSE = objectarahSE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahSE = objectarahSE(row, col, imgMat, imgIdx, mode);
                 if (!arahSE.isEmpty()) {
                     return arahSE;
                 }
@@ -240,7 +239,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 1 (depan)
                 //
-                List<String> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
                 if (!arahN.isEmpty()) {
                     return arahN;
                 }
@@ -248,7 +247,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 2
                 //
-                List<String> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
                 if (!arahNE.isEmpty()) {
                     return arahNE;
                 }
@@ -257,7 +256,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 3
                 //
-                List<String> arahE = objectarahE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahE = objectarahE(row, col, imgMat, imgIdx, mode);
                 if (!arahE.isEmpty()) {
                     return arahE;
                 }
@@ -265,7 +264,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 4
                 //
-                List<String> arahSE = objectarahSE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahSE = objectarahSE(row, col, imgMat, imgIdx, mode);
                 if (!arahSE.isEmpty()) {
                     return arahSE;
                 }
@@ -273,7 +272,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 5
                 //
-                List<String> arahS = objectarahS(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahS = objectarahS(row, col, imgMat, imgIdx, mode);
                 if (!arahS.isEmpty()) {
                     return arahS;
                 }
@@ -281,7 +280,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 2
                 //
-                List<String> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
                 if (!arahNE.isEmpty()) {
                     return arahNE;
                 }
@@ -290,7 +289,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 3
                 //
-                List<String> arahE = objectarahE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahE = objectarahE(row, col, imgMat, imgIdx, mode);
                 if (!arahE.isEmpty()) {
                     return arahE;
                 }
@@ -298,7 +297,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 4
                 //
-                List<String> arahSE = objectarahSE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahSE = objectarahSE(row, col, imgMat, imgIdx, mode);
                 if (!arahSE.isEmpty()) {
                     return arahSE;
                 }
@@ -306,7 +305,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 5
                 //
-                List<String> arahS = objectarahS(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahS = objectarahS(row, col, imgMat, imgIdx, mode);
                 if (!arahS.isEmpty()) {
                     return arahS;
                 }
@@ -314,7 +313,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 6
                 //
-                List<String> arahSW = objectarahSW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahSW = objectarahSW(row, col, imgMat, imgIdx, mode);
                 if (!arahSW.isEmpty()) {
                     return arahSW;
                 }
@@ -322,7 +321,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 7
                 //
-                List<String> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
                 if (!arahW.isEmpty()) {
                     return arahW;
                 }
@@ -330,7 +329,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 3
                 //
-                List<String> arahE = objectarahE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahE = objectarahE(row, col, imgMat, imgIdx, mode);
                 if (!arahE.isEmpty()) {
                     return arahE;
                 }
@@ -338,7 +337,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 4
                 //
-                List<String> arahSE = objectarahSE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahSE = objectarahSE(row, col, imgMat, imgIdx, mode);
                 if (!arahSE.isEmpty()) {
                     return arahSE;
                 }
@@ -346,7 +345,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 5
                 //
-                List<String> arahS = objectarahS(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahS = objectarahS(row, col, imgMat, imgIdx, mode);
                 if (!arahS.isEmpty()) {
                     return arahS;
                 }
@@ -354,7 +353,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 6
                 //
-                List<String> arahSW = objectarahSW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahSW = objectarahSW(row, col, imgMat, imgIdx, mode);
                 if (!arahSW.isEmpty()) {
                     return arahSW;
                 }
@@ -362,7 +361,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 7
                 //
-                List<String> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
                 if (!arahW.isEmpty()) {
                     return arahW;
                 }
@@ -370,7 +369,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 4
                 //
-                List<String> arahSE = objectarahSE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahSE = objectarahSE(row, col, imgMat, imgIdx, mode);
                 if (!arahSE.isEmpty()) {
                     return arahSE;
                 }
@@ -378,7 +377,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 5
                 //
-                List<String> arahS = objectarahS(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahS = objectarahS(row, col, imgMat, imgIdx, mode);
                 if (!arahS.isEmpty()) {
                     return arahS;
                 }
@@ -386,7 +385,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 6
                 //
-                List<String> arahSW = objectarahSW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahSW = objectarahSW(row, col, imgMat, imgIdx, mode);
                 if (!arahSW.isEmpty()) {
                     return arahSW;
                 }
@@ -394,7 +393,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 7
                 //
-                List<String> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
                 if (!arahW.isEmpty()) {
                     return arahW;
                 }
@@ -402,7 +401,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 8
                 //
-                List<String> arahNW = objectarahNW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahNW = objectarahNW(row, col, imgMat, imgIdx, mode);
                 if (!arahNW.isEmpty()) {
                     return arahNW;
                 }
@@ -410,7 +409,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 1 (depan)
                 //
-                List<String> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
                 if (!arahN.isEmpty()) {
                     return arahN;
                 }
@@ -418,7 +417,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 5
                 //
-                List<String> arahS = objectarahS(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahS = objectarahS(row, col, imgMat, imgIdx, mode);
                 if (!arahS.isEmpty()) {
                     return arahS;
                 }
@@ -426,7 +425,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 6
                 //
-                List<String> arahSW = objectarahSW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahSW = objectarahSW(row, col, imgMat, imgIdx, mode);
                 if (!arahSW.isEmpty()) {
                     return arahSW;
                 }
@@ -434,7 +433,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 7
                 //
-                List<String> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
                 if (!arahW.isEmpty()) {
                     return arahW;
                 }
@@ -442,7 +441,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 8
                 //
-                List<String> arahNW = objectarahNW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahNW = objectarahNW(row, col, imgMat, imgIdx, mode);
                 if (!arahNW.isEmpty()) {
                     return arahNW;
                 }
@@ -450,7 +449,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 1 (depan)
                 //
-                List<String> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
                 if (!arahN.isEmpty()) {
                     return arahN;
                 }
@@ -458,7 +457,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 2
                 //
-                List<String> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
                 if (!arahNE.isEmpty()) {
                     return arahNE;
                 }
@@ -467,7 +466,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 6
                 //
-                List<String> arahSW = objectarahSW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahSW = objectarahSW(row, col, imgMat, imgIdx, mode);
                 if (!arahSW.isEmpty()) {
                     return arahSW;
                 }
@@ -475,7 +474,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 7
                 //
-                List<String> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
                 if (!arahW.isEmpty()) {
                     return arahW;
                 }
@@ -483,7 +482,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 8
                 //
-                List<String> arahNW = objectarahNW(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahNW = objectarahNW(row, col, imgMat, imgIdx, mode);
                 if (!arahNW.isEmpty()) {
                     return arahNW;
                 }
@@ -491,7 +490,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 1 (depan)
                 //
-                List<String> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
                 if (!arahN.isEmpty()) {
                     return arahN;
                 }
@@ -499,7 +498,7 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 2
                 //
-                List<String> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
+                List<AbsDirection> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
                 if (!arahNE.isEmpty()) {
                     return arahNE;
                 }
@@ -524,7 +523,7 @@ public class ChainCodeWhiteConverter {
      * @param mode
      * @return
      */
-    private List<String> objectarahN(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    private List<AbsDirection> objectarahN(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row - 1;
         tempcol = col;
@@ -536,17 +535,17 @@ public class ChainCodeWhiteConverter {
         if (mode == 1) {
             if (gray1 > toleransiWhite) {
                 areaObject(row, col);
-                return ImmutableList.<String>builder().add("1").addAll(prosesChaincode(temprow, tempcol, 1, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.N).addAll(prosesChaincode(temprow, tempcol, 1, imgMat, mode)).build();
             }
         } else {
             if (gray1 < toleransi) {
-                return ImmutableList.<String>builder().add("1").addAll(prosesChaincode(temprow, tempcol, 1, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.N).addAll(prosesChaincode(temprow, tempcol, 1, imgMat, mode)).build();
             }
         }
         return ImmutableList.of();
     }
 
-    private List<String> objectarahNE(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    private List<AbsDirection> objectarahNE(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row - 1;
         tempcol = col + 1;
@@ -557,17 +556,19 @@ public class ChainCodeWhiteConverter {
         if (mode == 1) {
             if (gray2 > toleransiWhite) {
                 areaObject(row, col);
-                return ImmutableList.<String>builder().add("2").addAll(prosesChaincode(temprow, tempcol, 2, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.NE)
+                        .addAll(prosesChaincode(temprow, tempcol, 2, imgMat, mode)).build();
             }
         } else {
             if (gray2 < toleransi) {
-                return ImmutableList.<String>builder().add("2").addAll(prosesChaincode(temprow, tempcol, 2, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.NE)
+                        .addAll(prosesChaincode(temprow, tempcol, 2, imgMat, mode)).build();
             }
         }
         return ImmutableList.of();
     }
 
-    private List<String> objectarahE(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    private List<AbsDirection> objectarahE(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row;
         tempcol = col + 1;
@@ -578,18 +579,20 @@ public class ChainCodeWhiteConverter {
         if (mode == 1) {
             if (gray3 > toleransiWhite) {
                 areaObject(row, col);
-                return ImmutableList.<String>builder().add("3").addAll(prosesChaincode(temprow, tempcol, 3, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.E)
+                        .addAll(prosesChaincode(temprow, tempcol, 3, imgMat, mode)).build();
             }
         } else {
             if (gray3 < toleransi) {
-                return ImmutableList.<String>builder().add("3").addAll(prosesChaincode(temprow, tempcol, 3, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.E)
+                        .addAll(prosesChaincode(temprow, tempcol, 3, imgMat, mode)).build();
             }
         }
 
         return ImmutableList.of();
     }
 
-    private List<String> objectarahSE(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    private List<AbsDirection> objectarahSE(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row + 1;
         tempcol = col + 1;
@@ -600,18 +603,20 @@ public class ChainCodeWhiteConverter {
         if (mode == 1) {
             if (gray4 > toleransiWhite) {
                 areaObject(row, col);
-                return ImmutableList.<String>builder().add("4").addAll(prosesChaincode(temprow, tempcol, 4, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.SE)
+                        .addAll(prosesChaincode(temprow, tempcol, 4, imgMat, mode)).build();
             }
         } else {
             if (gray4 < toleransi) {
-                return ImmutableList.<String>builder().add("4").addAll(prosesChaincode(temprow, tempcol, 4, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.SE)
+                        .addAll(prosesChaincode(temprow, tempcol, 4, imgMat, mode)).build();
             }
         }
 
         return ImmutableList.of();
     }
 
-    private List<String> objectarahS(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    private List<AbsDirection> objectarahS(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row + 1;
         tempcol = col;
@@ -621,18 +626,20 @@ public class ChainCodeWhiteConverter {
         if (mode == 1) {
             if (gray5 > toleransiWhite) {
                 areaObject(row, col);
-                return ImmutableList.<String>builder().add("5").addAll(prosesChaincode(temprow, tempcol, 5, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.S)
+                        .addAll(prosesChaincode(temprow, tempcol, 5, imgMat, mode)).build();
             }
         } else {
             if (gray5 < toleransi) {
-                return ImmutableList.<String>builder().add("5").addAll(prosesChaincode(temprow, tempcol, 5, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.S)
+                        .addAll(prosesChaincode(temprow, tempcol, 5, imgMat, mode)).build();
             }
         }
 
         return ImmutableList.of();
     }
 
-    private List<String> objectarahSW(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    private List<AbsDirection> objectarahSW(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row + 1;
         tempcol = col - 1;
@@ -643,18 +650,20 @@ public class ChainCodeWhiteConverter {
         if (mode == 1) {
             if (gray6 > toleransiWhite) {
                 areaObject(row, col);
-                return ImmutableList.<String>builder().add("6").addAll(prosesChaincode(temprow, tempcol, 6, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.SW)
+                        .addAll(prosesChaincode(temprow, tempcol, 6, imgMat, mode)).build();
             }
         } else {
             if (gray6 < toleransi) {
-                return ImmutableList.<String>builder().add("6").addAll(prosesChaincode(temprow, tempcol, 6, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.SW)
+                        .addAll(prosesChaincode(temprow, tempcol, 6, imgMat, mode)).build();
             }
         }
 
         return ImmutableList.of();
     }
 
-    private List<String> objectarahW(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    private List<AbsDirection> objectarahW(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row;
         tempcol = col - 1;
@@ -665,18 +674,20 @@ public class ChainCodeWhiteConverter {
         if (mode == 1) {
             if (gray7 > toleransiWhite) {
                 areaObject(row, col);
-                return ImmutableList.<String>builder().add("7").addAll(prosesChaincode(temprow, tempcol, 7, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.W)
+                        .addAll(prosesChaincode(temprow, tempcol, 7, imgMat, mode)).build();
             }
         } else {
             if (gray7 < toleransi) {
-                return ImmutableList.<String>builder().add("7").addAll(prosesChaincode(temprow, tempcol, 7, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.W)
+                        .addAll(prosesChaincode(temprow, tempcol, 7, imgMat, mode)).build();
             }
         }
 
         return ImmutableList.of();
     }
 
-    private List<String> objectarahNW(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    private List<AbsDirection> objectarahNW(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row - 1;
         tempcol = col - 1;
@@ -687,12 +698,13 @@ public class ChainCodeWhiteConverter {
         if (mode == 1) {
             if (gray8 > toleransiWhite) {
                 areaObject(row, col);
-                return ImmutableList.<String>builder().add("8").addAll(prosesChaincode(temprow, tempcol, 8, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.NW)
+                        .addAll(prosesChaincode(temprow, tempcol, 8, imgMat, mode)).build();
             }
         } else {
             if (gray8 < toleransi) {
-
-                return ImmutableList.<String>builder().add("8").addAll(prosesChaincode(temprow, tempcol, 8, imgMat, mode)).build();
+                return ImmutableList.<AbsDirection>builder().add(AbsDirection.NW)
+                        .addAll(prosesChaincode(temprow, tempcol, 8, imgMat, mode)).build();
             }
         }
 
@@ -713,7 +725,7 @@ public class ChainCodeWhiteConverter {
         }
     }
 
-    private String getKodeBelok(String chainCode) {
+    private String calculateKodeBelok(String chainCode) {
         String kodeBelok = "";
         String temp = String.valueOf(chainCode.charAt(0));
 
@@ -724,10 +736,7 @@ public class ChainCodeWhiteConverter {
         boolean rep = false;
 
         for (int i = 0; i < chainCode.length() - 1; i++) {
-            if (i == 105) {
-                char f = chainCode.charAt(i);
-            }
-            char ff = chainCode.charAt(i);
+            final char ff = chainCode.charAt(i);
             if (tempChar[0] != chainCode.charAt(i)) {
                 if (tempChar[1] != chainCode.charAt(i)) {
                     tempChar[0] = tempChar[1];

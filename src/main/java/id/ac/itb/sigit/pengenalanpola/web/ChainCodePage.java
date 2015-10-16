@@ -2,7 +2,7 @@ package id.ac.itb.sigit.pengenalanpola.web;
 
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.extensions.markup.html.bootstrap.ladda.LaddaAjaxButton;
-import id.ac.itb.sigit.pengenalanpola.ChainCode;
+import id.ac.itb.sigit.pengenalanpola.Geometry;
 import id.ac.itb.sigit.pengenalanpola.ChainCodeService;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -63,16 +63,16 @@ public class ChainCodePage extends PubLayout {
         final WebMarkupContainer listchaincode=new WebMarkupContainer("listchaincode");
         listchaincode.setOutputMarkupId(true);
 
-        IModel< List<ChainCode>> listModel = new AbstractReadOnlyModel<List<ChainCode>>() {
+        IModel< List<Geometry>> listModel = new AbstractReadOnlyModel<List<Geometry>>() {
             @Override
-            public List<ChainCode> getObject() {
+            public List<Geometry> getObject() {
                 return chainCodeService.getChainCode();
             }
         } ;
-        ListView<ChainCode> listview = new ListView<ChainCode>("listview", listModel) {
-            protected void populateItem(ListItem<ChainCode> item) {
-                ChainCode chainCode =  item.getModelObject();
-                item.add(new Label("chaincode",chainCode.getChainCodeStr()));
+        ListView<Geometry> listview = new ListView<Geometry>("listview", listModel) {
+            protected void populateItem(ListItem<Geometry> item) {
+                Geometry geometry =  item.getModelObject();
+                item.add(new Label("chaincode", geometry.getChainCodeFcce()));
             }
         };
 
