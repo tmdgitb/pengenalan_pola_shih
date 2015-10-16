@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class ChainCode {
     private String character;
-    private String chainCode;
+    private String chainCodeStr;
     private String kodeBelok;
     private List<ChainCode> subChainCode = new ArrayList<>();
     private Integer x;
@@ -24,12 +24,12 @@ public class ChainCode {
         this.character = character;
     }
 
-    public String getChainCode() {
-        return chainCode;
+    public String getChainCodeStr() {
+        return chainCodeStr;
     }
 
-    public void setChainCode(String chainCode) {
-        this.chainCode = chainCode;
+    public void setChainCodeStr(String chainCodeStr) {
+        this.chainCodeStr = chainCodeStr;
     }
 
     public String getKodeBelok() {
@@ -103,7 +103,7 @@ public class ChainCode {
     public String toString() {
         return "ChainCode{" +
                 "character='" + character + '\'' +
-                ", chainCode='" + chainCode + '\'' +
+                ", chainCodeStr='" + chainCodeStr + '\'' +
                 ", kodeBelok='" + kodeBelok + '\'' +
                 ", x=" + x +
                 ", y=" + y +

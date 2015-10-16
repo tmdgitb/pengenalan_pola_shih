@@ -1,7 +1,6 @@
 package id.ac.itb.sigit.pengenalanpola;
 
-import org.bytedeco.javacpp.indexer.ByteIndexer;
-import org.bytedeco.javacpp.indexer.ByteIndexer;
+import com.google.common.collect.ImmutableList;
 import org.bytedeco.javacpp.indexer.ByteIndexer;
 import org.bytedeco.javacpp.opencv_core;
 import org.slf4j.Logger;
@@ -9,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Sigit on 03/10/2015.
@@ -54,17 +54,17 @@ public class ChainCodeWhiteConverter {
                     maxVer = y;
                     minHor = x;
                     maxHor = x;
-                    String chaincode = prosesChaincode(y, x, 3, imgMat, 1);
+                    List<String> chainCodeStrs = prosesChaincode(y, x, 3, imgMat, 1);
                     ChainCode chainCode = new ChainCode();
 
-                    String kodeBelok = getKodeBelok(chaincode);
-                    chainCode.setChainCode(chaincode);
+                    String kodeBelok = getKodeBelok(chainCodeStrs.stream().collect(Collectors.joining()));
+                    chainCode.setChainCodeStr(chainCodeStrs.stream().collect(Collectors.joining()));
                     chainCode.setKodeBelok(kodeBelok);
                     chainCode.setX(x);
                     chainCode.setY(y);
 
-                    if (chaincode.length() > 20) {
-                        log.info("Chaincode object #{} at ({}, {}): {}", objectIdx, x, y, chaincode);
+                    if (chainCodeStrs.size() > 20) {
+                        log.info("Chaincode object #{} at ({}, {}): {}", objectIdx, x, y, chainCodeStrs);
                         objectIdx++;
                         List<ChainCode> subChainCodes = subObject(imgMat);
                         if (subChainCodes.size() > 0) {
@@ -114,10 +114,10 @@ public class ChainCodeWhiteConverter {
                     }
 
                     if (grayScale < toleransi && searchSubObject && !flag[y][x]) {
-                        String chaincode2 = prosesChaincode(y, x, 3, imgMat, 0);
+                        List<String> chaincode2 = prosesChaincode(y, x, 3, imgMat, 0);
 
                         ChainCode subChainCode = new ChainCode();
-                        subChainCode.setChainCode(chaincode2);
+                        subChainCode.setChainCodeStr(chaincode2.stream().collect(Collectors.joining()));
                         subChainCodes.add(subChainCode);
 
                         //charDef.getSubChainCode().add(chaincode2);
@@ -141,9 +141,9 @@ public class ChainCodeWhiteConverter {
         return subChainCodes;
     }
 
-    private String prosesChaincode(int row, int col, int arah, opencv_core.Mat imgMat, int mode) {
+    private List<String> prosesChaincode(int row, int col, int arah, opencv_core.Mat imgMat, int mode) {
         if (flag[row][col]) {
-            return "";
+            return ImmutableList.of();
         }
         flag[row][col] = true;
 
@@ -155,41 +155,41 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 7 (samping kiri)
                 //
-                String arah7 = objectarah7(row, col, imgMat, imgIdx, mode);
-                if (arah7 != "") {
-                    return arah7;
+                List<String> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
+                if (!arahW.isEmpty()) {
+                    return arahW;
                 }
                 //
                 //cek arah 8
                 //
-                String arah8 = objectarah8(row, col, imgMat, imgIdx, mode);
-                if (arah8 != "") {
-                    return arah8;
+                List<String> arahNW = objectarahNW(row, col, imgMat, imgIdx, mode);
+                if (!arahNW.isEmpty()) {
+                    return arahNW;
                 }
 
                 //
                 //cek arah 1 (depan)
                 //
-                String arah1 = objectarah1(row, col, imgMat, imgIdx, mode);
-                if (arah1 != "") {
-                    return arah1;
+                List<String> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
+                if (!arahN.isEmpty()) {
+                    return arahN;
                 }
 
                 //
                 //cek arah 2
                 //
-                String arah2 = objectarah2(row, col, imgMat, imgIdx, mode);
-                if (arah2 != "") {
-                    return arah2;
+                List<String> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
+                if (!arahNE.isEmpty()) {
+                    return arahNE;
                 }
 
 
                 //
                 //cek arah 3
                 //
-                String arah3 = objectarah3(row, col, imgMat, imgIdx, mode);
-                if (arah3 != "") {
-                    return arah3;
+                List<String> arahE = objectarahE(row, col, imgMat, imgIdx, mode);
+                if (!arahE.isEmpty()) {
+                    return arahE;
                 }
 
             }
@@ -198,313 +198,313 @@ public class ChainCodeWhiteConverter {
                 //
                 //cek arah 8 (samping kiri)
                 //
-                String arah8 = objectarah8(row, col, imgMat, imgIdx, mode);
-                if (arah8 != "") {
-                    return arah8;
+                List<String> arahNW = objectarahNW(row, col, imgMat, imgIdx, mode);
+                if (!arahNW.isEmpty()) {
+                    return arahNW;
                 }
 
                 //
                 //cek arah 1 (depan)
                 //
-                String arah1 = objectarah1(row, col, imgMat, imgIdx, mode);
-                if (arah1 != "") {
-                    return arah1;
+                List<String> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
+                if (!arahN.isEmpty()) {
+                    return arahN;
                 }
 
                 //
                 //cek arah 2
                 //
-                String arah2 = objectarah2(row, col, imgMat, imgIdx, mode);
-                if (arah2 != "") {
-                    return arah2;
+                List<String> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
+                if (!arahNE.isEmpty()) {
+                    return arahNE;
                 }
 
 
                 //
                 //cek arah 3
                 //
-                String arah3 = objectarah3(row, col, imgMat, imgIdx, mode);
-                if (arah3 != "") {
-                    return arah3;
+                List<String> arahE = objectarahE(row, col, imgMat, imgIdx, mode);
+                if (!arahE.isEmpty()) {
+                    return arahE;
                 }
 
                 //
                 //cek arah 4
                 //
-                String arah4 = objectarah4(row, col, imgMat, imgIdx, mode);
-                if (arah4 != "") {
-                    return arah4;
+                List<String> arahSE = objectarahSE(row, col, imgMat, imgIdx, mode);
+                if (!arahSE.isEmpty()) {
+                    return arahSE;
                 }
 
             } else if (arah == 3) {
                 //
                 //cek arah 1 (depan)
                 //
-                String arah1 = objectarah1(row, col, imgMat, imgIdx, mode);
-                if (arah1 != "") {
-                    return arah1;
+                List<String> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
+                if (!arahN.isEmpty()) {
+                    return arahN;
                 }
 
                 //
                 //cek arah 2
                 //
-                String arah2 = objectarah2(row, col, imgMat, imgIdx, mode);
-                if (arah2 != "") {
-                    return arah2;
+                List<String> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
+                if (!arahNE.isEmpty()) {
+                    return arahNE;
                 }
 
 
                 //
                 //cek arah 3
                 //
-                String arah3 = objectarah3(row, col, imgMat, imgIdx, mode);
-                if (arah3 != "") {
-                    return arah3;
+                List<String> arahE = objectarahE(row, col, imgMat, imgIdx, mode);
+                if (!arahE.isEmpty()) {
+                    return arahE;
                 }
 
                 //
                 //cek arah 4
                 //
-                String arah4 = objectarah4(row, col, imgMat, imgIdx, mode);
-                if (arah4 != "") {
-                    return arah4;
+                List<String> arahSE = objectarahSE(row, col, imgMat, imgIdx, mode);
+                if (!arahSE.isEmpty()) {
+                    return arahSE;
                 }
 
                 //
                 //cek arah 5
                 //
-                String arah5 = objectarah5(row, col, imgMat, imgIdx, mode);
-                if (arah5 != "") {
-                    return arah5;
+                List<String> arahS = objectarahS(row, col, imgMat, imgIdx, mode);
+                if (!arahS.isEmpty()) {
+                    return arahS;
                 }
             } else if (arah == 4) {
                 //
                 //cek arah 2
                 //
-                String arah2 = objectarah2(row, col, imgMat, imgIdx, mode);
-                if (arah2 != "") {
-                    return arah2;
+                List<String> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
+                if (!arahNE.isEmpty()) {
+                    return arahNE;
                 }
 
 
                 //
                 //cek arah 3
                 //
-                String arah3 = objectarah3(row, col, imgMat, imgIdx, mode);
-                if (arah3 != "") {
-                    return arah3;
+                List<String> arahE = objectarahE(row, col, imgMat, imgIdx, mode);
+                if (!arahE.isEmpty()) {
+                    return arahE;
                 }
 
                 //
                 //cek arah 4
                 //
-                String arah4 = objectarah4(row, col, imgMat, imgIdx, mode);
-                if (arah4 != "") {
-                    return arah4;
+                List<String> arahSE = objectarahSE(row, col, imgMat, imgIdx, mode);
+                if (!arahSE.isEmpty()) {
+                    return arahSE;
                 }
 
                 //
                 //cek arah 5
                 //
-                String arah5 = objectarah5(row, col, imgMat, imgIdx, mode);
-                if (arah5 != "") {
-                    return arah5;
+                List<String> arahS = objectarahS(row, col, imgMat, imgIdx, mode);
+                if (!arahS.isEmpty()) {
+                    return arahS;
                 }
 
                 //
                 //cek arah 6
                 //
-                String arah6 = objectarah6(row, col, imgMat, imgIdx, mode);
-                if (arah6 != "") {
-                    return arah6;
+                List<String> arahSW = objectarahSW(row, col, imgMat, imgIdx, mode);
+                if (!arahSW.isEmpty()) {
+                    return arahSW;
                 }
 
                 //
                 //cek arah 7
                 //
-                String arah7 = objectarah7(row, col, imgMat, imgIdx, mode);
-                if (arah7 != "") {
-                    return arah7;
+                List<String> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
+                if (!arahW.isEmpty()) {
+                    return arahW;
                 }
             } else if (arah == 5) {
                 //
                 //cek arah 3
                 //
-                String arah3 = objectarah3(row, col, imgMat, imgIdx, mode);
-                if (arah3 != "") {
-                    return arah3;
+                List<String> arahE = objectarahE(row, col, imgMat, imgIdx, mode);
+                if (!arahE.isEmpty()) {
+                    return arahE;
                 }
 
                 //
                 //cek arah 4
                 //
-                String arah4 = objectarah4(row, col, imgMat, imgIdx, mode);
-                if (arah4 != "") {
-                    return arah4;
+                List<String> arahSE = objectarahSE(row, col, imgMat, imgIdx, mode);
+                if (!arahSE.isEmpty()) {
+                    return arahSE;
                 }
 
                 //
                 //cek arah 5
                 //
-                String arah5 = objectarah5(row, col, imgMat, imgIdx, mode);
-                if (arah5 != "") {
-                    return arah5;
+                List<String> arahS = objectarahS(row, col, imgMat, imgIdx, mode);
+                if (!arahS.isEmpty()) {
+                    return arahS;
                 }
 
                 //
                 //cek arah 6
                 //
-                String arah6 = objectarah6(row, col, imgMat, imgIdx, mode);
-                if (arah6 != "") {
-                    return arah6;
+                List<String> arahSW = objectarahSW(row, col, imgMat, imgIdx, mode);
+                if (!arahSW.isEmpty()) {
+                    return arahSW;
                 }
 
                 //
                 //cek arah 7
                 //
-                String arah7 = objectarah7(row, col, imgMat, imgIdx, mode);
-                if (arah7 != "") {
-                    return arah7;
+                List<String> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
+                if (!arahW.isEmpty()) {
+                    return arahW;
                 }
             } else if (arah == 6) {
                 //
                 //cek arah 4
                 //
-                String arah4 = objectarah4(row, col, imgMat, imgIdx, mode);
-                if (arah4 != "") {
-                    return arah4;
+                List<String> arahSE = objectarahSE(row, col, imgMat, imgIdx, mode);
+                if (!arahSE.isEmpty()) {
+                    return arahSE;
                 }
 
                 //
                 //cek arah 5
                 //
-                String arah5 = objectarah5(row, col, imgMat, imgIdx, mode);
-                if (arah5 != "") {
-                    return arah5;
+                List<String> arahS = objectarahS(row, col, imgMat, imgIdx, mode);
+                if (!arahS.isEmpty()) {
+                    return arahS;
                 }
 
                 //
                 //cek arah 6
                 //
-                String arah6 = objectarah6(row, col, imgMat, imgIdx, mode);
-                if (arah6 != "") {
-                    return arah6;
+                List<String> arahSW = objectarahSW(row, col, imgMat, imgIdx, mode);
+                if (!arahSW.isEmpty()) {
+                    return arahSW;
                 }
 
                 //
                 //cek arah 7
                 //
-                String arah7 = objectarah7(row, col, imgMat, imgIdx, mode);
-                if (arah7 != "") {
-                    return arah7;
+                List<String> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
+                if (!arahW.isEmpty()) {
+                    return arahW;
                 }
 
                 //
                 //cek arah 8
                 //
-                String arah8 = objectarah8(row, col, imgMat, imgIdx, mode);
-                if (arah8 != "") {
-                    return arah8;
+                List<String> arahNW = objectarahNW(row, col, imgMat, imgIdx, mode);
+                if (!arahNW.isEmpty()) {
+                    return arahNW;
                 }
 
                 //
                 //cek arah 1 (depan)
                 //
-                String arah1 = objectarah1(row, col, imgMat, imgIdx, mode);
-                if (arah1 != "") {
-                    return arah1;
+                List<String> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
+                if (!arahN.isEmpty()) {
+                    return arahN;
                 }
             } else if (arah == 7) {
                 //
                 //cek arah 5
                 //
-                String arah5 = objectarah5(row, col, imgMat, imgIdx, mode);
-                if (arah5 != "") {
-                    return arah5;
+                List<String> arahS = objectarahS(row, col, imgMat, imgIdx, mode);
+                if (!arahS.isEmpty()) {
+                    return arahS;
                 }
 
                 //
                 //cek arah 6
                 //
-                String arah6 = objectarah6(row, col, imgMat, imgIdx, mode);
-                if (arah6 != "") {
-                    return arah6;
+                List<String> arahSW = objectarahSW(row, col, imgMat, imgIdx, mode);
+                if (!arahSW.isEmpty()) {
+                    return arahSW;
                 }
 
                 //
                 //cek arah 7
                 //
-                String arah7 = objectarah7(row, col, imgMat, imgIdx, mode);
-                if (arah7 != "") {
-                    return arah7;
+                List<String> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
+                if (!arahW.isEmpty()) {
+                    return arahW;
                 }
 
                 //
                 //cek arah 8
                 //
-                String arah8 = objectarah8(row, col, imgMat, imgIdx, mode);
-                if (arah8 != "") {
-                    return arah8;
+                List<String> arahNW = objectarahNW(row, col, imgMat, imgIdx, mode);
+                if (!arahNW.isEmpty()) {
+                    return arahNW;
                 }
 
                 //
                 //cek arah 1 (depan)
                 //
-                String arah1 = objectarah1(row, col, imgMat, imgIdx, mode);
-                if (arah1 != "") {
-                    return arah1;
+                List<String> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
+                if (!arahN.isEmpty()) {
+                    return arahN;
                 }
 
                 //
                 //cek arah 2
                 //
-                String arah2 = objectarah2(row, col, imgMat, imgIdx, mode);
-                if (arah2 != "") {
-                    return arah2;
+                List<String> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
+                if (!arahNE.isEmpty()) {
+                    return arahNE;
                 }
             } else //if(arah==8)
             {
                 //
                 //cek arah 6
                 //
-                String arah6 = objectarah6(row, col, imgMat, imgIdx, mode);
-                if (arah6 != "") {
-                    return arah6;
+                List<String> arahSW = objectarahSW(row, col, imgMat, imgIdx, mode);
+                if (!arahSW.isEmpty()) {
+                    return arahSW;
                 }
 
                 //
                 //cek arah 7
                 //
-                String arah7 = objectarah7(row, col, imgMat, imgIdx, mode);
-                if (arah7 != "") {
-                    return arah7;
+                List<String> arahW = objectarahW(row, col, imgMat, imgIdx, mode);
+                if (!arahW.isEmpty()) {
+                    return arahW;
                 }
 
                 //
                 //cek arah 8
                 //
-                String arah8 = objectarah8(row, col, imgMat, imgIdx, mode);
-                if (arah8 != "") {
-                    return arah8;
+                List<String> arahNW = objectarahNW(row, col, imgMat, imgIdx, mode);
+                if (!arahNW.isEmpty()) {
+                    return arahNW;
                 }
 
                 //
                 //cek arah 1 (depan)
                 //
-                String arah1 = objectarah1(row, col, imgMat, imgIdx, mode);
-                if (arah1 != "") {
-                    return arah1;
+                List<String> arahN = objectarahN(row, col, imgMat, imgIdx, mode);
+                if (!arahN.isEmpty()) {
+                    return arahN;
                 }
 
                 //
                 //cek arah 2
                 //
-                String arah2 = objectarah2(row, col, imgMat, imgIdx, mode);
-                if (arah2 != "") {
-                    return arah2;
+                List<String> arahNE = objectarahNE(row, col, imgMat, imgIdx, mode);
+                if (!arahNE.isEmpty()) {
+                    return arahNE;
                 }
             }
-            return "";
+            return ImmutableList.of();
         } finally {
             imgIdx.release();
         }
@@ -515,179 +515,188 @@ public class ChainCodeWhiteConverter {
         return Byte.toUnsignedInt(imagByte[0]);
     }
 
-    private String objectarah1(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    /**
+     * {@link AbsDirection#N}
+     * @param row
+     * @param col
+     * @param imgMat
+     * @param indexer
+     * @param mode
+     * @return
+     */
+    private List<String> objectarahN(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row - 1;
         tempcol = col;
 
         if(!cekRowAndCol(temprow,tempcol))
-            return "";
+            return ImmutableList.of();
 
         final int gray1 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray1 > toleransiWhite) {
                 areaObject(row, col);
-                return "1" + prosesChaincode(temprow, tempcol, 1, imgMat, mode);
+                return ImmutableList.<String>builder().add("1").addAll(prosesChaincode(temprow, tempcol, 1, imgMat, mode)).build();
             }
         } else {
             if (gray1 < toleransi) {
-                return "1" + prosesChaincode(temprow, tempcol, 1, imgMat, mode);
+                return ImmutableList.<String>builder().add("1").addAll(prosesChaincode(temprow, tempcol, 1, imgMat, mode)).build();
             }
         }
-        return "";
+        return ImmutableList.of();
     }
 
-    private String objectarah2(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    private List<String> objectarahNE(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row - 1;
         tempcol = col + 1;
         if(!cekRowAndCol(temprow,tempcol))
-            return "";
+            return ImmutableList.of();
 
         final int gray2 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray2 > toleransiWhite) {
                 areaObject(row, col);
-                return "2" + prosesChaincode(temprow, tempcol, 2, imgMat, mode);
+                return ImmutableList.<String>builder().add("2").addAll(prosesChaincode(temprow, tempcol, 2, imgMat, mode)).build();
             }
         } else {
             if (gray2 < toleransi) {
-                return "2" + prosesChaincode(temprow, tempcol, 2, imgMat, mode);
+                return ImmutableList.<String>builder().add("2").addAll(prosesChaincode(temprow, tempcol, 2, imgMat, mode)).build();
             }
         }
-        return "";
+        return ImmutableList.of();
     }
 
-    private String objectarah3(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    private List<String> objectarahE(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row;
         tempcol = col + 1;
         if(!cekRowAndCol(temprow,tempcol))
-            return "";
+            return ImmutableList.of();
 
         final int gray3 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray3 > toleransiWhite) {
                 areaObject(row, col);
-                return "3" + prosesChaincode(temprow, tempcol, 3, imgMat, mode);
+                return ImmutableList.<String>builder().add("3").addAll(prosesChaincode(temprow, tempcol, 3, imgMat, mode)).build();
             }
         } else {
             if (gray3 < toleransi) {
-                return "3" + prosesChaincode(temprow, tempcol, 3, imgMat, mode);
+                return ImmutableList.<String>builder().add("3").addAll(prosesChaincode(temprow, tempcol, 3, imgMat, mode)).build();
             }
         }
 
-        return "";
+        return ImmutableList.of();
     }
 
-    private String objectarah4(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    private List<String> objectarahSE(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row + 1;
         tempcol = col + 1;
         if(!cekRowAndCol(temprow,tempcol))
-            return "";
+            return ImmutableList.of();
 
         final int gray4 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray4 > toleransiWhite) {
                 areaObject(row, col);
-                return "4" + prosesChaincode(temprow, tempcol, 4, imgMat, mode);
+                return ImmutableList.<String>builder().add("4").addAll(prosesChaincode(temprow, tempcol, 4, imgMat, mode)).build();
             }
         } else {
             if (gray4 < toleransi) {
-                return "4" + prosesChaincode(temprow, tempcol, 4, imgMat, mode);
+                return ImmutableList.<String>builder().add("4").addAll(prosesChaincode(temprow, tempcol, 4, imgMat, mode)).build();
             }
         }
 
-        return "";
+        return ImmutableList.of();
     }
 
-    private String objectarah5(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    private List<String> objectarahS(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row + 1;
         tempcol = col;
         if(!cekRowAndCol(temprow,tempcol))
-            return "";
+            return ImmutableList.of();
         final int gray5 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray5 > toleransiWhite) {
                 areaObject(row, col);
-                return "5" + prosesChaincode(temprow, tempcol, 5, imgMat, mode);
+                return ImmutableList.<String>builder().add("5").addAll(prosesChaincode(temprow, tempcol, 5, imgMat, mode)).build();
             }
         } else {
             if (gray5 < toleransi) {
-                return "5" + prosesChaincode(temprow, tempcol, 5, imgMat, mode);
+                return ImmutableList.<String>builder().add("5").addAll(prosesChaincode(temprow, tempcol, 5, imgMat, mode)).build();
             }
         }
 
-        return "";
+        return ImmutableList.of();
     }
 
-    private String objectarah6(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    private List<String> objectarahSW(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row + 1;
         tempcol = col - 1;
         if(!cekRowAndCol(temprow,tempcol))
-            return "";
+            return ImmutableList.of();
 
         final int gray6 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray6 > toleransiWhite) {
                 areaObject(row, col);
-                return "6" + prosesChaincode(temprow, tempcol, 6, imgMat, mode);
+                return ImmutableList.<String>builder().add("6").addAll(prosesChaincode(temprow, tempcol, 6, imgMat, mode)).build();
             }
         } else {
             if (gray6 < toleransi) {
-                return "6" + prosesChaincode(temprow, tempcol, 6, imgMat, mode);
+                return ImmutableList.<String>builder().add("6").addAll(prosesChaincode(temprow, tempcol, 6, imgMat, mode)).build();
             }
         }
 
-        return "";
+        return ImmutableList.of();
     }
 
-    private String objectarah7(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    private List<String> objectarahW(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row;
         tempcol = col - 1;
         if(!cekRowAndCol(temprow,tempcol))
-            return "";
+            return ImmutableList.of();
 
         final int gray7 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray7 > toleransiWhite) {
                 areaObject(row, col);
-                return "7" + prosesChaincode(temprow, tempcol, 7, imgMat, mode);
+                return ImmutableList.<String>builder().add("7").addAll(prosesChaincode(temprow, tempcol, 7, imgMat, mode)).build();
             }
         } else {
             if (gray7 < toleransi) {
-                return "7" + prosesChaincode(temprow, tempcol, 7, imgMat, mode);
+                return ImmutableList.<String>builder().add("7").addAll(prosesChaincode(temprow, tempcol, 7, imgMat, mode)).build();
             }
         }
 
-        return "";
+        return ImmutableList.of();
     }
 
-    private String objectarah8(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
+    private List<String> objectarahNW(int row, int col, opencv_core.Mat imgMat, ByteIndexer indexer, int mode) {
         int temprow, tempcol;
         temprow = row - 1;
         tempcol = col - 1;
         if(!cekRowAndCol(temprow,tempcol))
-            return "";
+            return ImmutableList.of();
 
         final int gray8 = Byte.toUnsignedInt(indexer.get(temprow, tempcol));
         if (mode == 1) {
             if (gray8 > toleransiWhite) {
                 areaObject(row, col);
-                return "8" + prosesChaincode(temprow, tempcol, 8, imgMat, mode);
+                return ImmutableList.<String>builder().add("8").addAll(prosesChaincode(temprow, tempcol, 8, imgMat, mode)).build();
             }
         } else {
             if (gray8 < toleransi) {
 
-                return "8" + prosesChaincode(temprow, tempcol, 8, imgMat, mode);
+                return ImmutableList.<String>builder().add("8").addAll(prosesChaincode(temprow, tempcol, 8, imgMat, mode)).build();
             }
         }
 
-        return "";
+        return ImmutableList.of();
     }
 
     private void areaObject(int row, int col) {

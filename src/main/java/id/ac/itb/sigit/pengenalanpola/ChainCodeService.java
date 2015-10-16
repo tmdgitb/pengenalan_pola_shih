@@ -84,14 +84,14 @@ public class ChainCodeService {
         return data;
     }
 
-    private void prosesChainCode(opencv_core.Mat img, String msg) {
-        final ByteIndexer idx = img.createIndexer();
-        try {
-            ChainCodeConverter chainCodeConverter = new ChainCodeConverter(img, idx, msg);
-            charDefs.add(chainCodeConverter.getChainCode());
-        } finally {
-            idx.release();
-        }
-    }
+//    private void prosesChainCode(opencv_core.Mat img, String msg) {
+//        final ByteIndexer idx = img.createIndexer();
+//        try {
+//            ChainCodeConverter chainCodeConverter = new ChainCodeConverter(img, idx, msg);
+//            charDefs.add(chainCodeConverter.getChainCode());
+//        } finally {
+//            idx.release();
+//        }
+//    }
 
 }

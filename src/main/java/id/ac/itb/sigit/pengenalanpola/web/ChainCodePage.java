@@ -72,7 +72,7 @@ public class ChainCodePage extends PubLayout {
         ListView<ChainCode> listview = new ListView<ChainCode>("listview", listModel) {
             protected void populateItem(ListItem<ChainCode> item) {
                 ChainCode chainCode =  item.getModelObject();
-                item.add(new Label("chaincode",chainCode.getChainCode()));
+                item.add(new Label("chaincode",chainCode.getChainCodeStr()));
             }
         };
 
