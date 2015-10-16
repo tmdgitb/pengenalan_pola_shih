@@ -4,6 +4,7 @@ import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.extensions.markup.html.bootstrap.ladda.LaddaAjaxButton;
 import id.ac.itb.sigit.pengenalanpola.Histogram;
 import id.ac.itb.sigit.pengenalanpola.HistogramEq;
+import org.apache.commons.io.FileUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.wicketstuff.annotation.mount.MountPath;
 
 import java.io.File;
+import java.io.IOException;
 
 import static org.bytedeco.javacpp.opencv_core.Mat;
 
@@ -36,9 +38,10 @@ public class EqualizationPage  extends PubLayout {
     private Histogram histogram1 = new Histogram(), histogram2 = new Histogram();
     private byte[] origBytes;
 
-    public EqualizationPage(PageParameters parameters) {
+    public EqualizationPage(PageParameters parameters) throws IOException {
         super(parameters);
         File inputImg = new File("Unequalized.jpg");
+        origBytes = FileUtils.readFileToByteArray(inputImg);
         histogram1.loadInput(inputImg);
 
         histogramEq = new HistogramEq();

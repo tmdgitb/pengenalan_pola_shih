@@ -40,16 +40,16 @@ public class HistogramEq implements Serializable {
         log.info("Processing image file '{}' ...", imageFile);
         final Mat origMat = opencv_highgui.imread(imageFile.getPath());
         log.info("Image mat: rows={} cols={}", origMat.rows(), origMat.cols());
-        run(origMat);
-        return origMat;
+        final Mat eqMat = run(origMat);
+        return eqMat;
     }
 
     public Mat loadInput(String contentType, byte[] inputBytes) {
         log.info("Processing input image {}: {} bytes ...", contentType, inputBytes.length);
-        final Mat origMat = opencv_highgui.imdecode(new Mat(inputBytes), opencv_highgui.CV_LOAD_IMAGE_COLOR);
+        Mat origMat = opencv_highgui.imdecode(new Mat(inputBytes), opencv_highgui.CV_LOAD_IMAGE_COLOR);
         log.info("Image mat: rows={} cols={}", origMat.rows(), origMat.cols());
-        run(origMat);
-        return origMat;
+        final Mat eqMat = run(origMat);
+        return eqMat;
     }
 
 //    public opencv_core.Mat getOrigMat() {
