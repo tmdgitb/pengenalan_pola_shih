@@ -62,7 +62,7 @@ public class ZhangSuenPage extends PubLayout {
             @Override
             protected byte[] getImageData(Attributes attributes) {
                 final BytePointer bufPtr = new BytePointer();
-                opencv_highgui.imencode(".png", zhangSuenService.getOrigMat(), bufPtr);
+                opencv_highgui.imencode(".png", zhangSuenService.getZhainSuenMat(), bufPtr);
                 log.info("PNG Image: {} bytes", bufPtr.capacity());
                 final byte[] buf = new byte[bufPtr.capacity()];
                 bufPtr.get(buf);
@@ -75,8 +75,8 @@ public class ZhangSuenPage extends PubLayout {
         form.add(origImg);
 
         final Image zhangsuenImg = new Image("zhangSuenImg",zhangSuenImgRees);
-        origImg.setOutputMarkupId(true);
-        form.add(origImg);
+        zhangsuenImg.setOutputMarkupId(true);
+        form.add(zhangsuenImg);
 
         form.add(new LaddaAjaxButton("loadBtn", new Model<>("Load"), Buttons.Type.Default) {
             @Override

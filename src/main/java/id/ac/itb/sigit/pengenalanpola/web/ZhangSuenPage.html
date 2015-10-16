@@ -32,21 +32,26 @@
                 </div>
             </div>
         </section>
-        <section>
+        <form  wicket:id="form">
             <div class="row">
-                <form class="col-md-6" wicket:id="form">
+                <div class="col-md-12">
                     <p><strong>Original</strong></p>
 
                     <div>
                         <input type="file" wicket:id="fileFld" accept="image/*"/>
                         <button class="button" wicket:id="loadBtn">Load</button>
                     </div>
-                    <p><img wicket:id="origImg" class="img-responsive"/></p>
 
-
-                </form>
+                </div>
+                <div class="col-md-6">
+                    <img wicket:id="origImg" class="img-responsive"/>
+                </div>
+                <div class="col-md-6">
+                    <img wicket:id="zhangSuenImg" class="img-responsive"/>
+                </div>
             </div>
 
-        </section>
+
+        </form>
     </div>
 </wicket:extend>
