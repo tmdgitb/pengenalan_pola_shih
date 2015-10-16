@@ -7,7 +7,6 @@ import id.ac.itb.sigit.pengenalanpola.Geometry;
 import id.ac.itb.sigit.pengenalanpola.ChainCodeService;
 import id.ac.itb.sigit.pengenalanpola.GrayscaleMode;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -43,20 +42,6 @@ public class ChainCodePage extends PubLayout {
 
     public ChainCodePage(PageParameters parameters) {
         super(parameters);
-
-        final Form<Void> form2 = new Form<>("form2");
-        final Model<GrayscaleMode> modeImage2Model = new Model<>(GrayscaleMode.WHITE_ON_BLACK);
-        final RadioChoice<GrayscaleMode> modeImage2 = new RadioChoice<>("modeImage2",
-                modeImage2Model, ImmutableList.copyOf(GrayscaleMode.values()));
-        form2.add(modeImage2);
-        form2.add(new AjaxButton("loadBtn3") {
-            @Override
-            protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
-                super.onAfterSubmit(target, form);
-                log.info("modeimageModel: {}", modeImage2Model.getObject());
-            }
-        });
-        add(form2);
 
         final Form<Void> form = new Form<>("form");
 
@@ -107,31 +92,39 @@ public class ChainCodePage extends PubLayout {
                 final Geometry geometry = item.getModelObject();
                 item.add(new Label("fcce", geometry.getAbsChainCode().getFcce()));
                 item.add(new Label("text", geometry.getAbsChainCode().getText()));
+
+                IModel<List<Geometry>> sublistModel = new AbstractReadOnlyModel<List<Geometry>>() {
+                    @Override
+                    public List<Geometry> getObject() {
+                        return item.getModelObject().getSubGeometries();
+                    }
+                };
+                ListView<Geometry> sublistview = new ListView<Geometry>("sublistview", sublistModel) {
+                    protected void populateItem(ListItem<Geometry> item) {
+                        final Geometry geometry = item.getModelObject();
+                        item.add(new Label("fcce", geometry.getAbsChainCode().getFcce()));
+                        item.add(new Label("text", geometry.getAbsChainCode().getText()));
+
+                    }
+                };
+
             }
         };
 
         listchaincode.add(listview);
         add(listchaincode);
 
-        form.add(new AjaxButton("loadBtn2") {
-            @Override
-            protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
-                super.onAfterSubmit(target, form);
-                log.info("modeimageModel: {}", modeImageModel.getObject());
-            }
-        });
         form.add(new LaddaAjaxButton("loadBtn", new Model<>("Load"), Buttons.Type.Default) {
             @Override
-            protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
-                super.onAfterSubmit(target, form);
-                log.info("modeimageModel: {}", modeImageModel.getObject());
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                super.onSubmit(target, form);
                 log.info("mode: {} ", modeImage.getModelObject());
                 final String msg = (String) msgImage.getModelObject();
                 log.info("Message: {} ", msg);
                 final int mode = modeImage.getModelObject() == GrayscaleMode.BLACK_ON_WHITE ? 1 : 0;
 
                 final FileUpload first = filesModel.getObject().get(0);
-                chainCodeService.loadInput(first.getContentType(), first.getBytes(), 1);
+                chainCodeService.loadInput(first.getContentType(), first.getBytes(), mode);
                 info("Loaded file " + first.getClientFileName() + " (" + first.getContentType() + ")");
                 target.add(origImg, listchaincode, notificationPanel);
             }

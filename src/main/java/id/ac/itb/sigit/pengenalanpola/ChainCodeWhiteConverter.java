@@ -71,7 +71,7 @@ public class ChainCodeWhiteConverter {
                         objectIdx++;
                         List<Geometry> subGeometries = subObject(imgMat);
                         if (subGeometries.size() > 0) {
-                            geometry.getSubGeometry().addAll(subGeometries);
+                            geometry.getSubGeometries().addAll(subGeometries);
                         }
                         geometries.add(geometry);
                     }

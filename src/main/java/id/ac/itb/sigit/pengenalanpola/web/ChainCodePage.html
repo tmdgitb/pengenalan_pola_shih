@@ -25,25 +25,20 @@
                             <input wicket:id="msgImage" type="text" size="20" />
                         </p>
                         <button class="button" wicket:id="loadBtn">Load</button>
-                        <button class="button" wicket:id="loadBtn2">Load Biasa</button>
                     </div>
                     <p><img wicket:id="origImg" class="img-responsive"/></p>
-                </form>
-                <form class="col-md-3" wicket:id="form2">
-                    <p><strong>Original</strong></p>
-                    <div>
-                        <p>
-                            <label>Mode</label>:
-                            <span wicket:id="modeImage2"></span>
-                        </p>
-                        <button class="button" wicket:id="loadBtn3">Load 3</button>
-                    </div>
                 </form>
                 <div class="col-md-9" wicket:id="listchaincode">
                     <ol style="word-wrap: break-word">
                         <li wicket:id="listview">
                             <p wicket:id="fcce">01234</p>
                             <p wicket:id="text">→→→→→→→→→→↓↘↓↓↘↓↘</p>
+                            <ol>
+                                <li wicket:id="sublistview">
+                                    <p wicket:id="fcce">01234</p>
+                                    <p wicket:id="text">→→→→→→→→→→↓↘↓↓↘↓↘</p>
+                                </li>
+                            </ol>
                         </li>
                     </ol>
                 </div>

@@ -13,7 +13,7 @@ public class Geometry {
     private String character;
     private AbsChainCode absChainCode;
     private String kodeBelok;
-    private List<Geometry> subGeometry = new ArrayList<>();
+    private List<Geometry> subGeometries = new ArrayList<>();
     private Integer x;
     private Integer y;
 
@@ -45,8 +45,8 @@ public class Geometry {
         this.kodeBelok = kodeBelok;
     }
 
-    public List<Geometry> getSubGeometry() {
-        return subGeometry;
+    public List<Geometry> getSubGeometries() {
+        return subGeometries;
     }
 
     public Integer getX() {

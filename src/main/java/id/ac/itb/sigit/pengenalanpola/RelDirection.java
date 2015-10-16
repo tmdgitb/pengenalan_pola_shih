@@ -1,9 +1,10 @@
 package id.ac.itb.sigit.pengenalanpola;
 
 /**
- * Relative direction, using <strong>Directional Freeman Chain Code of Eigth Directions (DFCCE)</strong>,
+ * Relative direction, using <strong>Directional Freeman Chain Code of Eight Directions (DFCCE)</strong>,
  * described in <a href="">Y.K. Liu, B. Zalik, An efficient chain code with Huffman coding, Pattern
  Recognition 38 (4) (2005) 553–557</a>.
+ * See also "Proposing a new code by considering pieces of discrete straight lines in contour shapes - Sanchez-Cruz 2010"
  * See also: http://www.mind.ilstu.edu/curriculum/chain_codes_intro/chain_codes_intro.php
  * Created by ceefour on 16/10/2015.
  */

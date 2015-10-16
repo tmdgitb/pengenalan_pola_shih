@@ -1,6 +1,7 @@
 package id.ac.itb.sigit.pengenalanpola;
 
 import org.bytedeco.javacpp.indexer.ByteIndexer;
+import org.bytedeco.javacpp.opencv_imgproc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -12,105 +13,116 @@ public class ZhangSuen {
     private Logger log = LoggerFactory.getLogger(ZhangSuen.class);
 
     private byte[] p = new byte[9];
-    private byte foreground = 1;
+    private byte foreground = (byte) 255;
     private byte background = 0;
+    private static int THRESHOLD = 128;
 //    private byte imageout[][];
     private boolean mark[][];
 
     /**
-     * @param image Input must be 0 (background) and 1 (foreground).
+     * @param image Input must be grayscale, where foreground is > {@link #THRESHOLD}.
      * @param idx
      * @return
      */
-    public Mat process(final Mat image, final ByteIndexer idx) {
-        int row = image.rows();
-        int col = image.cols();
-        int breaker = 0;
-        boolean finish = false;
+    public Mat process(final Mat srcImage) {
+        // Threshold first. so output is binary grayscale. 0=background, 255=foreground.
+        final Mat image = new Mat();
+        opencv_imgproc.threshold(srcImage, image, THRESHOLD, 255, opencv_imgproc.CV_THRESH_BINARY);
+        final ByteIndexer idx = image.createIndexer();
+
+        try {
+            int row = image.rows();
+            int col = image.cols();
+            int breaker = 0;
+            boolean finish = false;
 //        imageout = new byte[row][col];
-        mark = new boolean[row][col];
-        while (!finish) {
-            int count = 0;
-            if (breaker == -1) finish = true;
-            //STEP 1 - Mark semua FG yang memenuhi kondisi 1 sampai 4
-            for (int y = 0; y < row; y++) {
-                for (int x = 0; x < col; x++) {
-                    p[0] = idx.get(y, x);
+            mark = new boolean[row][col];
+            while (!finish) {
+                int count = 0;
+                if (breaker == -1) finish = true;
+                //STEP 1 - Mark semua FG yang memenuhi kondisi 1 sampai 4
+                for (int y = 0; y < row; y++) {
+                    for (int x = 0; x < col; x++) {
+                        p[0] = idx.get(y, x);
 
-                    if (p[0] == foreground) {
-                        if (y == 0 || y == row - 1 || x == 0 || x == col - 1) {
-                        } else {
-                            p[1] = idx.get(y - 1, x);
-                            p[2] = idx.get(y - 1, x + 1);
-                            p[3] = idx.get(y, x + 1);
-                            p[4] = idx.get(y + 1, x + 1);
-                            p[5] = idx.get(y + 1, x);
-                            p[6] = idx.get(y + 1, x - 1);
-                            p[7] = idx.get(y, x - 1);
-                            p[8] = idx.get(y - 1, x - 1);
+                        if (p[0] == foreground) {
+                            if (y == 0 || y == row - 1 || x == 0 || x == col - 1) {
+                            } else {
+                                p[1] = idx.get(y - 1, x);
+                                p[2] = idx.get(y - 1, x + 1);
+                                p[3] = idx.get(y, x + 1);
+                                p[4] = idx.get(y + 1, x + 1);
+                                p[5] = idx.get(y + 1, x);
+                                p[6] = idx.get(y + 1, x - 1);
+                                p[7] = idx.get(y, x - 1);
+                                p[8] = idx.get(y - 1, x - 1);
 
-                            if (firstCondition() && secondCondition() && thirdCondition() && fourthCondition()) {
-                                mark[y][x] = true;
+                                if (firstCondition() && secondCondition() && thirdCondition() && fourthCondition()) {
+                                    mark[y][x] = true;
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // STEP 2 - Ubah semua pixel yang sudah ditandai menjadi background
-            for (int i = 0; i < row; i++) {
-                for (int j = 0; j < col; j++) {
-                    if (mark[i][j]) {
-                        idx.put(i, j, background);
+                // STEP 2 - Ubah semua pixel yang sudah ditandai menjadi background
+                for (int i = 0; i < row; i++) {
+                    for (int j = 0; j < col; j++) {
+                        if (mark[i][j]) {
+                            idx.put(i, j, background);
+                        }
+                        mark[i][j] = false;
                     }
-                    mark[i][j] = false;
                 }
-            }
 
-            // STEP 3 - Mark semua FG yang memenuhi kondisi 5 & 8
-            for (int i = 0; i < row; i++) {
-                for (int j = 0; j < col; j++) {
-                    p[0] = idx.get(i, j);
+                // STEP 3 - Mark semua FG yang memenuhi kondisi 5 & 8
+                for (int i = 0; i < row; i++) {
+                    for (int j = 0; j < col; j++) {
+                        p[0] = idx.get(i, j);
 
-                    if (p[0] == foreground) {
-                        if (i == 0 || i == row - 1 || j == 0 || j == col - 1) {
-                        } else {
-                            p[1] = idx.get(i - 1, j);
-                            p[2] = idx.get(i - 1, j + 1);
-                            p[3] = idx.get(i, j + 1);
-                            p[4] = idx.get(i + 1, j + 1);
-                            p[5] = idx.get(i + 1, j);
-                            p[6] = idx.get(i + 1, j - 1);
-                            p[7] = idx.get(i, j - 1);
-                            p[8] = idx.get(i - 1, j - 1);
+                        if (p[0] == foreground) {
+                            if (i == 0 || i == row - 1 || j == 0 || j == col - 1) {
+                            } else {
+                                p[1] = idx.get(i - 1, j);
+                                p[2] = idx.get(i - 1, j + 1);
+                                p[3] = idx.get(i, j + 1);
+                                p[4] = idx.get(i + 1, j + 1);
+                                p[5] = idx.get(i + 1, j);
+                                p[6] = idx.get(i + 1, j - 1);
+                                p[7] = idx.get(i, j - 1);
+                                p[8] = idx.get(i - 1, j - 1);
 
-                            if (fifthCondition() && sixthCondition() && seventhCondition() && eighthCondition()) {
-                                mark[i][j] = true;
+                                if (fifthCondition() && sixthCondition() && seventhCondition() && eighthCondition()) {
+                                    mark[i][j] = true;
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            // STEP 4 - Ubah pixel yang mempunyai mark menjadi background
-            for (int y = 0; y < row; y++) {
-                for (int x = 0; x < col; x++) {
-                    if (mark[y][x]) {
-                        idx.put(y, x, background);
-                        count++;
+                // STEP 4 - Ubah pixel yang mempunyai mark menjadi background
+                for (int y = 0; y < row; y++) {
+                    for (int x = 0; x < col; x++) {
+                        if (mark[y][x]) {
+                            idx.put(y, x, background);
+                            count++;
+                        }
+                        mark[y][x] = false;
                     }
-                    mark[y][x] = false;
+                }
+                if (count == 0) {
+                    log.info("COUNT = " + count);
+                    breaker = -1;
+                } else {
+                    //System.out.print("COUNT = "+count);
                 }
             }
-            if (count == 0) {
-                log.info("COUNT = " + count);
-                breaker = -1;
-            } else {
-                //System.out.print("COUNT = "+count);
-            }
+            return image;
+        } finally {
+            idx.release();
         }
-        return image;
     }
+
 
     private int displacementBgToFg() {
         int count = 0;
