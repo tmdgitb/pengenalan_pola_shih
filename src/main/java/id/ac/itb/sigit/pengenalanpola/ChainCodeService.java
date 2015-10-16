@@ -23,39 +23,36 @@ public class ChainCodeService {
     private opencv_core.Mat origMat;
 
     List<CharDef> charDefs = new ArrayList<>();
-    List<ChainCode> data= new ArrayList<>();
-
+    List<ChainCode> data = new ArrayList<>();
 
     // Input file
     public opencv_core.Mat loadInput(File imageFile) {
-        return loadInput(imageFile,0);
+        return loadInput(imageFile, 0);
     }
 
-    public opencv_core.Mat loadInput(File imageFile,int mode) {
-        return loadInput(imageFile,mode,"");
+    public opencv_core.Mat loadInput(File imageFile, int mode) {
+        return loadInput(imageFile, mode, "");
     }
 
-    public opencv_core.Mat loadInput(File imageFile,int mode,String msg) {
+    public opencv_core.Mat loadInput(File imageFile, int mode, String msg) {
         log.info("Processing image file '{}' ...", imageFile);
         origMat = opencv_highgui.imread(imageFile.getPath());
-        log.info("Image mat: rows={} cols={}", origMat.rows(), origMat.cols());
-        setChainCode(origMat, msg,mode);
+        log.info("Image mat: rows={} cols={} depth={} type={}", origMat.rows(), origMat.cols(), origMat.depth(), origMat.type());
+        setChainCode(origMat, msg, mode);
         return origMat;
     }
 
     // Input Byte
-    public opencv_core.Mat loadInput(String contentType, byte[] inputBytes)
-    {
-        return loadInput(contentType,inputBytes,0);
+    public opencv_core.Mat loadInput(String contentType, byte[] inputBytes) {
+        return loadInput(contentType, inputBytes, 0);
     }
 
-    public opencv_core.Mat loadInput(String contentType, byte[] inputBytes,int mode)
-    {
-        return loadInput(contentType,inputBytes,mode,"");
+    public opencv_core.Mat loadInput(String contentType, byte[] inputBytes, int mode) {
+        return loadInput(contentType, inputBytes, mode, "");
     }
 
-    public opencv_core.Mat loadInput(String contentType, byte[] inputBytes,int mode,String msg) {
-        opencv_core.Mat imgGray=new opencv_core.Mat();
+    public opencv_core.Mat loadInput(String contentType, byte[] inputBytes, int mode, String msg) {
+        opencv_core.Mat imgGray = new opencv_core.Mat();
         log.info("Processing input image {}: {} bytes ...", contentType, inputBytes.length);
         origMat = opencv_highgui.imdecode(new opencv_core.Mat(inputBytes), opencv_highgui.CV_LOAD_IMAGE_COLOR);
         log.info("Image mat: rows={} cols={}", origMat.rows(), origMat.cols());
@@ -64,30 +61,26 @@ public class ChainCodeService {
     }
 
     public opencv_core.Mat getOrigMat() {
-        if(origMat==null)
-        {
+        if (origMat == null) {
             return new opencv_core.Mat();
         }
         return origMat;
     }
 
-    private void setChainCode(opencv_core.Mat imageFile,String msg,int mode)
-    {
-        opencv_core.Mat imgGray=new opencv_core.Mat();
+    private void setChainCode(opencv_core.Mat imageFile, String msg, int mode) {
+        opencv_core.Mat imgGray = new opencv_core.Mat();
         opencv_imgproc.cvtColor(imageFile, imgGray, opencv_imgproc.COLOR_BGR2GRAY);
-        if(mode==1)
-        {
-            InverseImageConverter inverseImage=new InverseImageConverter(imgGray);
-            imgGray=inverseImage.getInveseImage();
+        if (mode == 1) {
+            InverseImageConverter inverseImage = new InverseImageConverter(imgGray);
+            imgGray = inverseImage.getInveseImage();
         }
 
         final ChainCodeWhiteConverter chainCodeWhiteConverter = new ChainCodeWhiteConverter(imgGray, "plat");
         data = chainCodeWhiteConverter.getChainCode();
-        log.info("size chaincode {}",data.size());
+        log.info("size chaincode {}", data.size());
     }
 
-    public List<ChainCode> getChainCode()
-    {
+    public List<ChainCode> getChainCode() {
         return data;
     }
 
@@ -100,6 +93,5 @@ public class ChainCodeService {
             idx.release();
         }
     }
-
 
 }
