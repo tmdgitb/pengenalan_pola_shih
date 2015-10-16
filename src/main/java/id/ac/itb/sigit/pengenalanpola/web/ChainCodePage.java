@@ -1,13 +1,17 @@
 package id.ac.itb.sigit.pengenalanpola.web;
 
+import com.google.common.collect.ImmutableList;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.extensions.markup.html.bootstrap.ladda.LaddaAjaxButton;
 import id.ac.itb.sigit.pengenalanpola.Geometry;
 import id.ac.itb.sigit.pengenalanpola.ChainCodeService;
+import id.ac.itb.sigit.pengenalanpola.GrayscaleMode;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
@@ -46,15 +50,15 @@ public class ChainCodePage extends PubLayout {
         final FileUploadField fileFld = new FileUploadField("fileFld", filesModel);
         form.add(fileFld);
 
-        final Model<String> modeImageModel = Model.of("123");
-        final TextField<String> modeImage = new TextField<String>("modeImage",
-                modeImageModel);
-        modeImage.setOutputMarkupId(true);
+        final Model<GrayscaleMode> modeImageModel = new Model<>(GrayscaleMode.WHITE_ON_BLACK);
+        final RadioChoice<GrayscaleMode> modeImage = new RadioChoice<>("modeImage",
+                modeImageModel, ImmutableList.copyOf(GrayscaleMode.values()));
+        //modeImage.setOutputMarkupId(true);
         form.add(modeImage);
 
         final TextField<String> msgImage = new TextField<String>("msgImage",
                 Model.of(""));
-        msgImage.setOutputMarkupId( true );
+        //msgImage.setOutputMarkupId( true );
         form.add(msgImage);
 
         final DynamicImageResource origImgRes = new DynamicImageResource("png") {
@@ -96,15 +100,22 @@ public class ChainCodePage extends PubLayout {
         listchaincode.add(listview);
         add(listchaincode);
 
+        form.add(new AjaxButton("loadBtn2") {
+            @Override
+            protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
+                super.onAfterSubmit(target, form);
+                log.info("modeimageModel: {}", modeImageModel.getObject());
+            }
+        });
         form.add(new LaddaAjaxButton("loadBtn", new Model<>("Load"), Buttons.Type.Default) {
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                super.onSubmit(target, form);
+            protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
+                super.onAfterSubmit(target, form);
                 log.info("modeimageModel: {}", modeImageModel.getObject());
                 log.info("mode: {} ", modeImage.getModelObject());
                 final String msg = (String) msgImage.getModelObject();
                 log.info("Message: {} ", msg);
-                final int mode =Integer.parseInt((String) modeImage.getModelObject());
+                final int mode = modeImage.getModelObject() == GrayscaleMode.BLACK_ON_WHITE ? 1 : 0;
 
                 final FileUpload first = filesModel.getObject().get(0);
                 chainCodeService.loadInput(first.getContentType(), first.getBytes(), 1);

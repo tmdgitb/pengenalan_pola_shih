@@ -1,25 +1,3 @@
-<wicket:head>
-    <style>
-        body {
-        font: 10px sans-serif;
-        }
-
-        .bar rect {
-        fill: steelblue;
-        shape-rendering: crispEdges;
-        }
-
-        .bar text {
-        fill: #fff;
-        }
-
-        .axis path, .axis line {
-        fill: none;
-        stroke: #000;
-        shape-rendering: crispEdges;
-        }
-    </style>
-</wicket:head>
 <wicket:extend>
     <div layout:fragment="content" class="container">
         <section class="page-header" id="banner">
@@ -41,13 +19,14 @@
                         <input type="file" wicket:id="fileFld" accept="image/*"/>
                         <p>
                             <label>Mode</label>:
-                            <input wicket:id="modeImage" type="text" size="20" />
+                            <span wicket:id="modeImage"></span>
                         </p>
                         <p>
                             <label>Message</label>:
                             <input wicket:id="msgImage" type="text" size="20" />
                         </p>
                         <button class="button" wicket:id="loadBtn">Load</button>
+                        <button class="button" wicket:id="loadBtn2">Load Biasa</button>
                     </div>
                     <p><img wicket:id="origImg" class="img-responsive"/></p>
                 </form>
