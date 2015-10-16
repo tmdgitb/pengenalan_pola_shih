@@ -39,8 +39,6 @@ public class HistogramApp implements CommandLineRunner {
     public void run(String... args) throws Exception {
         final opencv_core.Mat imgMat = histogram.loadInput(new File("Beach.jpg"));
 
-        histogram.run();
-
         final String markerToReplace = "[{color: 0, frequency: 60}, {color: 128, frequency: 80}, {color: 172, frequency: 80}]";
         final String histogramTpl = IOUtils.toString(HistogramApp.class.getResource("/BarChart.html"));
 
@@ -73,8 +71,7 @@ public class HistogramApp implements CommandLineRunner {
         FileUtils.write(fileGray, outGray);
 
         // opencv_highgui.imwrite("../../images/Gray_Image.jpg", newImage);
-
-        opencv_highgui.imwrite("histogram_grayscale.jpg", histogram.getGrayMat());
+        //opencv_highgui.imwrite("histogram_grayscale.jpg", histogram.getGrayMat());
     }
 
 }

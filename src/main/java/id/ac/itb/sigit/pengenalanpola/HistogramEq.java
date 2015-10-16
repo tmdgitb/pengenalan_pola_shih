@@ -1,7 +1,7 @@
 package id.ac.itb.sigit.pengenalanpola;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.indexer.ByteIndexer;
 import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacpp.opencv_highgui;
@@ -9,21 +9,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
+
+import static org.bytedeco.javacpp.opencv_core.*;
 
 /**
  * Created by ilham on 16/10/2015.
  */
-public class HistogramEq {
+public class HistogramEq implements Serializable {
 
     public static ObjectMapper MAPPER = new ObjectMapper();
 
     private static Logger log = LoggerFactory.getLogger(HistogramEq.class);
 
-    private opencv_core.Mat origMat;
-    private opencv_core.Mat grayMat;
-    private opencv_core.Mat equalizedMat;
+//    private opencv_core.Mat origMat;
+//    private opencv_core.Mat grayMat;
+//    private opencv_core.Mat equalizedMat;
+    private byte[] equalizedPng;
     private int uniqueColorCount;
     private int red[];
     private int green[];
@@ -34,27 +36,29 @@ public class HistogramEq {
     private int blue2[];
     private int grayscale2[];
 
-    public opencv_core.Mat loadInput(File imageFile) {
+    public Mat loadInput(File imageFile) {
         log.info("Processing image file '{}' ...", imageFile);
-        origMat = opencv_highgui.imread(imageFile.getPath());
+        final Mat origMat = opencv_highgui.imread(imageFile.getPath());
         log.info("Image mat: rows={} cols={}", origMat.rows(), origMat.cols());
+        run(origMat);
         return origMat;
     }
 
-    public opencv_core.Mat loadInput(String contentType, byte[] inputBytes) {
+    public Mat loadInput(String contentType, byte[] inputBytes) {
         log.info("Processing input image {}: {} bytes ...", contentType, inputBytes.length);
-        origMat = opencv_highgui.imdecode(new opencv_core.Mat(inputBytes), opencv_highgui.CV_LOAD_IMAGE_COLOR);
+        final Mat origMat = opencv_highgui.imdecode(new Mat(inputBytes), opencv_highgui.CV_LOAD_IMAGE_COLOR);
         log.info("Image mat: rows={} cols={}", origMat.rows(), origMat.cols());
+        run(origMat);
         return origMat;
     }
 
-    public opencv_core.Mat getOrigMat() {
-        return origMat;
-    }
-
-    public opencv_core.Mat getEqualizedMat() {
-        return equalizedMat;
-    }
+//    public opencv_core.Mat getOrigMat() {
+//        return origMat;
+//    }
+//
+//    public opencv_core.Mat getEqualizedMat() {
+//        return equalizedMat;
+//    }
 
     byte[] getFGamaByte() {
         byte[] fGamaByte = new byte[256];
@@ -68,12 +72,11 @@ public class HistogramEq {
         double k = 7;
         //  ((indexWarna/255)^(1/k))*255
         return Math.round((float) Math.pow((indexWarna / 255f), 1 / k) * 255f);
-
     }
 
-    public void run() {
-        grayMat = origMat.clone();
-        equalizedMat = origMat.clone();
+    public Mat run(Mat origMat) {
+        final Mat grayMat = origMat.clone();
+        final Mat equalizedMat = origMat.clone();
 
         final ByteIndexer idx = origMat.createIndexer();
         final ByteIndexer newIdx = grayMat.createIndexer();
@@ -168,6 +171,17 @@ public class HistogramEq {
         }
 
         log.info("Jumlah Warna {}", uniqueColorCount);
+
+        final BytePointer equalizedBp = new BytePointer();
+        try {
+            opencv_highgui.imencode(".png", equalizedMat, equalizedBp);
+            equalizedPng = new byte[equalizedBp.capacity()];
+            equalizedBp.get(equalizedPng);
+        } finally {
+            equalizedBp.deallocate();
+        }
+
+        return equalizedMat;
     }
 
     public int getUniqueColorCount() {
@@ -194,7 +208,11 @@ public class HistogramEq {
         return grayscale2;
     }
 
-    public opencv_core.Mat getGrayMat() {
-        return grayMat;
+    public byte[] getEqualizedPng() {
+        return equalizedPng;
     }
+
+    //    public Mat getGrayMat() {
+//        return grayMat;
+//    }
 }

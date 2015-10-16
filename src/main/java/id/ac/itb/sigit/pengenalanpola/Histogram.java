@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,15 +19,11 @@ import static org.bytedeco.javacpp.opencv_core.*;
 /**
  * Created by ceefour on 13/10/2015.
  */
-@Service
-public class Histogram {
+public class Histogram implements Serializable {
 
     public static ObjectMapper MAPPER = new ObjectMapper();
 
     private static Logger log = LoggerFactory.getLogger(Histogram.class);
-
-
-
 
     public static class ChartDataC3 {
         public List<Object[]> columns = new ArrayList<>();
@@ -89,8 +86,8 @@ public class Histogram {
         }
     }
 
-    private Mat origMat;
-    private Mat grayMat;
+//    private Mat origMat;
+//    private Mat grayMat;
     private int uniqueColorCount;
     private int red[];
     private int green[];
@@ -99,27 +96,30 @@ public class Histogram {
 
     public Mat loadInput(File imageFile) {
         log.info("Processing image file '{}' ...", imageFile);
-        origMat = opencv_highgui.imread(imageFile.getPath());
+        final Mat origMat = opencv_highgui.imread(imageFile.getPath());
         log.info("Image mat: rows={} cols={}", origMat.rows(), origMat.cols());
+        run(origMat);
         return origMat;
     }
 
     public Mat loadInput(String contentType, byte[] inputBytes) {
         log.info("Processing input image {}: {} bytes ...", contentType, inputBytes.length);
-        origMat = opencv_highgui.imdecode(new Mat(inputBytes), opencv_highgui.CV_LOAD_IMAGE_COLOR);
+        final Mat origMat = opencv_highgui.imdecode(new Mat(inputBytes), opencv_highgui.CV_LOAD_IMAGE_COLOR);
         log.info("Image mat: rows={} cols={}", origMat.rows(), origMat.cols());
+        run(origMat);
         return origMat;
     }
 
     public Mat loadInput(Mat inputMat) {
-        origMat = inputMat.clone();
+        final Mat origMat = inputMat.clone();
         log.info("Image mat: rows={} cols={}", origMat.rows(), origMat.cols());
+        run(origMat);
         return origMat;
     }
 
-    public Mat getOrigMat() {
-        return origMat;
-    }
+//    public Mat getOrigMat() {
+//        return origMat;
+//    }
 
     byte[] getFGamaByte() {
         byte[] fGamaByte = new byte[256];
@@ -136,10 +136,10 @@ public class Histogram {
 
     }
 
-    public void run() {
-        grayMat = origMat.clone();
+    protected void run(Mat origMat) {
+        final Mat grayMat = origMat.clone();
         final ByteIndexer idx = origMat.createIndexer();
-        final ByteIndexer newIdx = grayMat.createIndexer();
+        final ByteIndexer grayIdx = grayMat.createIndexer();
         try {
 //            byte[] imagByte = new byte[3];
 //            idx.get(0, 0, imagByte);
@@ -182,11 +182,11 @@ public class Histogram {
                     newImagByte[1] = fGamaByte[g];//(byte) fGama(g);
                     newImagByte[2] = fGamaByte[r];//(byte) fGama(r);
 
-                    newIdx.put(y, x, newImagByte);
+                    grayIdx.put(y, x, newImagByte);
                 }
             }
         } finally {
-            newIdx.release();
+            grayIdx.release();
             idx.release();
         }
 
@@ -213,7 +213,7 @@ public class Histogram {
         return grayscale;
     }
 
-    public Mat getGrayMat() {
-        return grayMat;
-    }
+//    public Mat getGrayMat() {
+//        return grayMat;
+//    }
 }

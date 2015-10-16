@@ -20,13 +20,10 @@ import java.util.List;
 /**
  * Created by ceefour on 13/10/2015.
  */
-public class MultiHistogramPanel extends Panel {
+public class MultiHistogramPanel extends GenericPanel<Histogram> {
 
-    @Inject
-    private Histogram histogram;
-
-    public MultiHistogramPanel(String id) {
-        super(id);
+    public MultiHistogramPanel(String id, IModel<Histogram> model) {
+        super(id, model);
         setOutputMarkupId(true);
 //        final LoadableDetachableModel<String> valuesModel = new LoadableDetachableModel<String>() {
 //            @Override
@@ -40,6 +37,7 @@ public class MultiHistogramPanel extends Panel {
         final LoadableDetachableModel<String> c3Model = new LoadableDetachableModel<String>() {
             @Override
             protected String load() {
+                final Histogram histogram = model.getObject();
                 final String dataJson = Histogram.histToJsonC3(histogram.getGrayscale(),
                         histogram.getRed(), histogram.getGreen(), histogram.getBlue());
                 return "var chart = c3.generate({\n" +
