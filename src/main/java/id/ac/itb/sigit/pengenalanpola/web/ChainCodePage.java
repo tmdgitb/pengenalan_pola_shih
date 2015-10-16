@@ -44,6 +44,20 @@ public class ChainCodePage extends PubLayout {
     public ChainCodePage(PageParameters parameters) {
         super(parameters);
 
+        final Form<Void> form2 = new Form<>("form2");
+        final Model<GrayscaleMode> modeImage2Model = new Model<>(GrayscaleMode.WHITE_ON_BLACK);
+        final RadioChoice<GrayscaleMode> modeImage2 = new RadioChoice<>("modeImage2",
+                modeImage2Model, ImmutableList.copyOf(GrayscaleMode.values()));
+        form2.add(modeImage2);
+        form2.add(new AjaxButton("loadBtn3") {
+            @Override
+            protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
+                super.onAfterSubmit(target, form);
+                log.info("modeimageModel: {}", modeImage2Model.getObject());
+            }
+        });
+        add(form2);
+
         final Form<Void> form = new Form<>("form");
 
         final ListModel<FileUpload> filesModel = new ListModel<>();
@@ -53,7 +67,6 @@ public class ChainCodePage extends PubLayout {
         final Model<GrayscaleMode> modeImageModel = new Model<>(GrayscaleMode.WHITE_ON_BLACK);
         final RadioChoice<GrayscaleMode> modeImage = new RadioChoice<>("modeImage",
                 modeImageModel, ImmutableList.copyOf(GrayscaleMode.values()));
-        //modeImage.setOutputMarkupId(true);
         form.add(modeImage);
 
         final TextField<String> msgImage = new TextField<String>("msgImage",
