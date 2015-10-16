@@ -48,37 +48,40 @@ public class ChainCodePage extends PubLayout {
         final DynamicImageResource origImgRes = new DynamicImageResource("png") {
             @Override
             protected byte[] getImageData(Attributes attributes) {
-                final BytePointer bufPtr = new BytePointer();
-                opencv_highgui.imencode(".png", chainCodeService.getOrigMat(), bufPtr);
-                log.info("PNG Image: {} bytes", bufPtr.capacity());
-                final byte[] buf = new byte[bufPtr.capacity()];
-                bufPtr.get(buf);
-                return  buf;
+                if (chainCodeService.getOrigMat() != null) {
+                    final BytePointer bufPtr = new BytePointer();
+                    opencv_highgui.imencode(".png", chainCodeService.getOrigMat(), bufPtr);
+                    log.info("PNG Image: {} bytes", bufPtr.capacity());
+                    final byte[] buf = new byte[bufPtr.capacity()];
+                    bufPtr.get(buf);
+                    return buf;
+                } else {
+                    return new byte[0];
+                }
             }
         };
-        final Image origImg = new Image("origImg",origImgRes);
+        final Image origImg = new Image("origImg", origImgRes);
         origImg.setOutputMarkupId(true);
         form.add(origImg);
 
-        final WebMarkupContainer listchaincode=new WebMarkupContainer("listchaincode");
+        final WebMarkupContainer listchaincode = new WebMarkupContainer("listchaincode");
         listchaincode.setOutputMarkupId(true);
 
-        IModel< List<Geometry>> listModel = new AbstractReadOnlyModel<List<Geometry>>() {
+        IModel<List<Geometry>> listModel = new AbstractReadOnlyModel<List<Geometry>>() {
             @Override
             public List<Geometry> getObject() {
-                return chainCodeService.getChainCode();
+                return chainCodeService.getGeometries();
             }
-        } ;
+        };
         ListView<Geometry> listview = new ListView<Geometry>("listview", listModel) {
             protected void populateItem(ListItem<Geometry> item) {
-                Geometry geometry =  item.getModelObject();
+                Geometry geometry = item.getModelObject();
                 item.add(new Label("chaincode", geometry.getChainCodeFcce()));
             }
         };
 
         listchaincode.add(listview);
         add(listchaincode);
-
 
         form.add(new LaddaAjaxButton("loadBtn", new Model<>("Load"), Buttons.Type.Default) {
             @Override
@@ -87,7 +90,7 @@ public class ChainCodePage extends PubLayout {
                 final FileUpload first = filesModel.getObject().get(0);
                 chainCodeService.loadInput(first.getContentType(), first.getBytes());
                 info("Loaded file " + first.getClientFileName() + " (" + first.getContentType() + ")");
-                target.add(origImg,listchaincode, notificationPanel);
+                target.add(origImg, listchaincode, notificationPanel);
             }
         });
         add(form);

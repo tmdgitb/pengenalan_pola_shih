@@ -1,5 +1,6 @@
 package id.ac.itb.sigit.pengenalanpola;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.bytedeco.javacpp.indexer.ByteIndexer;
 import org.bytedeco.javacpp.opencv_core;
@@ -19,23 +20,26 @@ public class ChainCodeWhiteConverter {
     private boolean searchObject = true, searchSubObject = false;
     private int minHor = 0, maxHor = 0, minVer = 0, maxVer = 0;
     private opencv_core.Mat imgMat;
-    public List<Geometry> geometries;
+    private List<Geometry> geometries;
 
     /**
-     * @param data MUST BE GRAYSCALE
+     * @param imgMat MUST BE GRAYSCALE
      */
-    public ChainCodeWhiteConverter(opencv_core.Mat data) {
-        this(data, "");
+    public ChainCodeWhiteConverter(opencv_core.Mat imgMat) {
+        this(imgMat, "");
     }
 
     /**
-     * @param data MUST BE GRAYSCALE
+     * @param imgMat MUST BE GRAYSCALE
      * @param msg
      */
-    public ChainCodeWhiteConverter(opencv_core.Mat data, String msg) {
-        imgMat = data;
+    public ChainCodeWhiteConverter(opencv_core.Mat imgMat, String msg) {
+        this.imgMat = imgMat;
         geometries = new ArrayList<>();
-        log.info("ukuran gambar {}{}", imgMat.size().height(), imgMat.size().width());
+        log.info("ukuran gambar rows={} cols={} type={} depth={}",
+                this.imgMat.rows(), this.imgMat.cols(), this.imgMat.type(), this.imgMat.depth());
+        Preconditions.checkArgument(imgMat.type() == opencv_core.CV_8UC1,
+                "imgMat must be of type %s (CV_8UC1), but got %s", opencv_core.CV_8UC1, imgMat.type());
     }
 
     public List<Geometry> getChainCode() {

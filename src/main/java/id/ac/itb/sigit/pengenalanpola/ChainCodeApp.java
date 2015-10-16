@@ -36,7 +36,7 @@ public class ChainCodeApp implements CommandLineRunner {
     public void run(String... args) throws Exception {
         final File imageFile = new File("AA.jpg");//AA_1.jpg
         chainCodeService.loadInput(imageFile, 1);
-        final Geometry data = chainCodeService.getChainCode().get(0);
+        final Geometry data = chainCodeService.getGeometries().get(0);
         data.setCharacter("1");
 
         log.info("Chaincode char #{} = {}", data.getCharacter(), data.getChainCodeFcce());
