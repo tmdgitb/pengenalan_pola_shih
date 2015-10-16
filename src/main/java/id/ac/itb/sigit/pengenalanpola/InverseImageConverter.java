@@ -28,7 +28,7 @@ public class InverseImageConverter {
         }
     }
 
-    public opencv_core.Mat getInveseImage()
+    public opencv_core.Mat getInverseImage()
     {
         return inverseImage;
     }

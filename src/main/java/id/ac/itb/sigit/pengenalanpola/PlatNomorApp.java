@@ -35,12 +35,12 @@ public class PlatNomorApp implements CommandLineRunner {
     public static class RecognizedSymbol {
 
         private String name;
-        private ChainCode chainCode;
+        private Geometry geometry;
         private double confidence;
 
-        public RecognizedSymbol(String name, ChainCode chainCode, double confidence) {
+        public RecognizedSymbol(String name, Geometry geometry, double confidence) {
             this.name = name;
-            this.chainCode = chainCode;
+            this.geometry = geometry;
             this.confidence = confidence;
         }
 
@@ -52,12 +52,12 @@ public class PlatNomorApp implements CommandLineRunner {
             this.name = name;
         }
 
-        public ChainCode getChainCode() {
-            return chainCode;
+        public Geometry getGeometry() {
+            return geometry;
         }
 
-        public void setChainCode(ChainCode chainCode) {
-            this.chainCode = chainCode;
+        public void setGeometry(Geometry geometry) {
+            this.geometry = geometry;
         }
 
         public double getConfidence() {
@@ -75,7 +75,7 @@ public class PlatNomorApp implements CommandLineRunner {
         List<RecognizedSymbol> hasilPengenalan = new ArrayList<>();
 
         //===================================Data Training======================================//
-        List<ChainCode> dataTraining = new ArrayList<>();
+        List<Geometry> dataTraining = new ArrayList<>();
         List<String> stringTraining = new ArrayList<>();//B 14 IA -- 04.16
         stringTraining.add("platB.jpg");
         stringTraining.add("plat1.jpg");
@@ -91,7 +91,7 @@ public class PlatNomorApp implements CommandLineRunner {
             final opencv_core.Mat imgMat = opencv_highgui.imread(imageFile.getPath(), opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
             log.info("Image mat: rows={} cols={}: {}", imgMat.rows(), imgMat.cols(), imgMat);
             final ChainCodeWhiteConverter chainCodeWhiteConverter = new ChainCodeWhiteConverter(imgMat, "plat");
-            final List<ChainCode> data = chainCodeWhiteConverter.getChainCode();
+            final List<Geometry> data = chainCodeWhiteConverter.getChainCode();
             log.info("Chaincode: {}", data);
             data.get(0).setCharacter(stringTraining.get(i));
             dataTraining.add(data.get(0));
@@ -104,17 +104,17 @@ public class PlatNomorApp implements CommandLineRunner {
         final opencv_core.Mat imgMat = opencv_highgui.imread(imageFile.getPath(), opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
         log.info("Image mat: rows={} cols={}", imgMat.rows(), imgMat.cols());
         ChainCodeWhiteConverter chainCodeWhiteConverter = new ChainCodeWhiteConverter(imgMat, "plat");
-        List<ChainCode> dataPlat = chainCodeWhiteConverter.getChainCode();
+        List<Geometry> dataPlat = chainCodeWhiteConverter.getChainCode();
 
         //===================================Cek Data======================================//
 
         for (int i = 0; i < dataPlat.size(); i++) {
-            final ChainCode charPlat = dataPlat.get(i);
+            final Geometry charPlat = dataPlat.get(i);
 
             for (int j = 0; j < dataTraining.size(); j++) {
-                final ChainCode trainingCode = dataTraining.get(j);
-                final String resampledPlat = ChainCode.resample(charPlat.getKodeBelok(), trainingCode.getKodeBelok().length());
-                final double confidence = ChainCode.match(resampledPlat, trainingCode.getKodeBelok());
+                final Geometry trainingCode = dataTraining.get(j);
+                final String resampledPlat = Geometry.resample(charPlat.getKodeBelok(), trainingCode.getKodeBelok().length());
+                final double confidence = Geometry.match(resampledPlat, trainingCode.getKodeBelok());
                 if (confidence >= 0.6) {
                     log.info("Matched {}% {}: actual={} training={}",
                             Math.round(confidence * 100), trainingCode.getCharacter(), resampledPlat, trainingCode.getKodeBelok());
@@ -129,7 +129,7 @@ public class PlatNomorApp implements CommandLineRunner {
             final RecognizedSymbol recognized = hasilPengenalan.get(i);
             log.info("Found #{} {}% at ({},{}): {}",
                     i, Math.round(recognized.getConfidence() * 100),
-                    recognized.getChainCode().getX(), recognized.getChainCode().getY(), recognized.getName());
+                    recognized.getGeometry().getX(), recognized.getGeometry().getY(), recognized.getName());
         }
 
     }

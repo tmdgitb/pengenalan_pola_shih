@@ -35,3 +35,34 @@ mvn deploy:deploy-file -DrepositoryId=soluvas-public-thirdparty -Durl=http://nex
     `/opt/ibm/java-ppc64le-80/jre/lib/ppc64le/compressedrefs:/opt/ibm/java-ppc64le-80/jre/lib/ppc64le:/usr/lib`
 
         sudo ln -sv /usr/lib/jni/libopencv_java248.so /usr/lib
+
+## IntelliJ Run/Console Encoding Troubleshooting
+
+If you get weird characters instead of proper Unicode chaincode "↓↘↓↓↘↓↘↓↘↓↓↘↓↓",
+set Settings → File Encoding → Project Encoding → IDE Encoding, select UTF-8.
+
+## ChainCodeApp
+
+Before Freeman (FCCE):
+
+    Processing image file 'AA.jpg' ...
+    Image mat: rows=96 cols=149 depth=0 type=16
+    ukuran gambar 96149
+    Chaincode object #0 at (34, 21): 33333333335455454545545545454554554545545455455454545545545477777777771811811811887777777777777777777766555656556577777777711212112112121121211211211212112112121121211211212
+    Chaincode subobject : 54554554545545545577777777777711121211211212112
+    Chaincode object #1 at (103, 21): 33333333335454554545545545454554554545545455454554554545545477777777771181811811887777777777777777777766556556556577777777711212112112121121211211212112112121121121211211212
+    Chaincode subobject : 54554554545545545577777777777711121211211211212
+    size chaincode 2
+    Chaincode char #1 = 33333333335455454545545545454554554545545455455454545545545477777777771811811811887777777777777777777766555656556577777777711212112112121121211211211212112112121121211211212
+
+After Freeman (FCCE):
+
+    Processing image file 'AA.jpg' ...
+    Image mat: rows=96 cols=149 depth=0 type=16
+    ukuran gambar 96149
+    Chaincode object #0 at (34, 21): →→→→→→→→→→↓↘↓↓↘↓↘↓↘↓↓↘↓↓↘↓↘↓↘↓↓↘↓↓↘↓↘↓↓↘↓↘↓↓↘↓↓↘↓↘↓↘↓↓↘↓↓↘↓↘←←←←←←←←←←↑↖↑↑↖↑↑↖↑↑↖↖←←←←←←←←←←←←←←←←←←←←↙↙↓↓↓↙↓↙↓↓↙↓←←←←←←←←←↑↑↗↑↗↑↑↗↑↑↗↑↗↑↑↗↑↗↑↑↗↑↑↗↑↑↗↑↗↑↑↗↑↑↗↑↗↑↑↗↑↗↑↑↗↑↑↗↑↗
+    Chaincode subobject : ↓↘↓↓↘↓↓↘↓↘↓↓↘↓↓↘↓↓←←←←←←←←←←←←↑↑↑↗↑↗↑↑↗↑↑↗↑↗↑↑↗
+    Chaincode object #1 at (103, 21): →→→→→→→→→→↓↘↓↘↓↓↘↓↘↓↓↘↓↓↘↓↘↓↘↓↓↘↓↓↘↓↘↓↓↘↓↘↓↓↘↓↘↓↓↘↓↓↘↓↘↓↓↘↓↘←←←←←←←←←←↑↑↖↑↖↑↑↖↑↑↖↖←←←←←←←←←←←←←←←←←←←←↙↙↓↓↙↓↓↙↓↓↙↓←←←←←←←←←↑↑↗↑↗↑↑↗↑↑↗↑↗↑↑↗↑↗↑↑↗↑↑↗↑↗↑↑↗↑↑↗↑↗↑↑↗↑↑↗↑↗↑↑↗↑↑↗↑↗
+    Chaincode subobject : ↓↘↓↓↘↓↓↘↓↘↓↓↘↓↓↘↓↓←←←←←←←←←←←←↑↑↑↗↑↗↑↑↗↑↑↗↑↑↗↑↗
+    size chaincode 2
+    Chaincode char #1 = 00000000006766767676676676767667667676676766766767676676676744444444442322322322334444444444444444444455666565665644444444422121221221212212122122122121221221212212122122121

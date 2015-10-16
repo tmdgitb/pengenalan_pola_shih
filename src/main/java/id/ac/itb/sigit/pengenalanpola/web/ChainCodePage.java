@@ -1,13 +1,18 @@
 package id.ac.itb.sigit.pengenalanpola.web;
 
+import com.google.common.collect.ImmutableList;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.extensions.markup.html.bootstrap.ladda.LaddaAjaxButton;
-import id.ac.itb.sigit.pengenalanpola.ChainCode;
+import id.ac.itb.sigit.pengenalanpola.Geometry;
 import id.ac.itb.sigit.pengenalanpola.ChainCodeService;
+import id.ac.itb.sigit.pengenalanpola.GrayscaleMode;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.RadioChoice;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.markup.html.image.Image;
@@ -39,55 +44,96 @@ public class ChainCodePage extends PubLayout {
     public ChainCodePage(PageParameters parameters) {
         super(parameters);
 
+        final Form<Void> form2 = new Form<>("form2");
+        final Model<GrayscaleMode> modeImage2Model = new Model<>(GrayscaleMode.WHITE_ON_BLACK);
+        final RadioChoice<GrayscaleMode> modeImage2 = new RadioChoice<>("modeImage2",
+                modeImage2Model, ImmutableList.copyOf(GrayscaleMode.values()));
+        form2.add(modeImage2);
+        form2.add(new AjaxButton("loadBtn3") {
+            @Override
+            protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
+                super.onAfterSubmit(target, form);
+                log.info("modeimageModel: {}", modeImage2Model.getObject());
+            }
+        });
+        add(form2);
+
         final Form<Void> form = new Form<>("form");
 
         final ListModel<FileUpload> filesModel = new ListModel<>();
         final FileUploadField fileFld = new FileUploadField("fileFld", filesModel);
         form.add(fileFld);
 
+        final Model<GrayscaleMode> modeImageModel = new Model<>(GrayscaleMode.WHITE_ON_BLACK);
+        final RadioChoice<GrayscaleMode> modeImage = new RadioChoice<>("modeImage",
+                modeImageModel, ImmutableList.copyOf(GrayscaleMode.values()));
+        form.add(modeImage);
+
+        final TextField<String> msgImage = new TextField<String>("msgImage",
+                Model.of(""));
+        //msgImage.setOutputMarkupId( true );
+        form.add(msgImage);
+
         final DynamicImageResource origImgRes = new DynamicImageResource("png") {
             @Override
             protected byte[] getImageData(Attributes attributes) {
-                final BytePointer bufPtr = new BytePointer();
-                opencv_highgui.imencode(".png", chainCodeService.getOrigMat(), bufPtr);
-                log.info("PNG Image: {} bytes", bufPtr.capacity());
-                final byte[] buf = new byte[bufPtr.capacity()];
-                bufPtr.get(buf);
-                return  buf;
+                if (chainCodeService.getOrigMat() != null) {
+                    final BytePointer bufPtr = new BytePointer();
+                    opencv_highgui.imencode(".png", chainCodeService.getOrigMat(), bufPtr);
+                    log.info("PNG Image: {} bytes", bufPtr.capacity());
+                    final byte[] buf = new byte[bufPtr.capacity()];
+                    bufPtr.get(buf);
+                    return buf;
+                } else {
+                    return new byte[0];
+                }
             }
         };
-        final Image origImg = new Image("origImg",origImgRes);
+        final Image origImg = new Image("origImg", origImgRes);
         origImg.setOutputMarkupId(true);
         form.add(origImg);
 
-        final WebMarkupContainer listchaincode=new WebMarkupContainer("listchaincode");
+        final WebMarkupContainer listchaincode = new WebMarkupContainer("listchaincode");
         listchaincode.setOutputMarkupId(true);
 
-        IModel< List<ChainCode>> listModel = new AbstractReadOnlyModel<List<ChainCode>>() {
+        IModel<List<Geometry>> listModel = new AbstractReadOnlyModel<List<Geometry>>() {
             @Override
-            public List<ChainCode> getObject() {
-                return chainCodeService.getChainCode();
+            public List<Geometry> getObject() {
+                return chainCodeService.getGeometries();
             }
-        } ;
-        ListView<ChainCode> listview = new ListView<ChainCode>("listview", listModel) {
-            protected void populateItem(ListItem<ChainCode> item) {
-                ChainCode chainCode =  item.getModelObject();
-                item.add(new Label("chaincode",chainCode.getChainCode()));
+        };
+        ListView<Geometry> listview = new ListView<Geometry>("listview", listModel) {
+            protected void populateItem(ListItem<Geometry> item) {
+                final Geometry geometry = item.getModelObject();
+                item.add(new Label("fcce", geometry.getAbsChainCode().getFcce()));
+                item.add(new Label("text", geometry.getAbsChainCode().getText()));
             }
         };
 
         listchaincode.add(listview);
         add(listchaincode);
 
-
+        form.add(new AjaxButton("loadBtn2") {
+            @Override
+            protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
+                super.onAfterSubmit(target, form);
+                log.info("modeimageModel: {}", modeImageModel.getObject());
+            }
+        });
         form.add(new LaddaAjaxButton("loadBtn", new Model<>("Load"), Buttons.Type.Default) {
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                super.onSubmit(target, form);
+            protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
+                super.onAfterSubmit(target, form);
+                log.info("modeimageModel: {}", modeImageModel.getObject());
+                log.info("mode: {} ", modeImage.getModelObject());
+                final String msg = (String) msgImage.getModelObject();
+                log.info("Message: {} ", msg);
+                final int mode = modeImage.getModelObject() == GrayscaleMode.BLACK_ON_WHITE ? 1 : 0;
+
                 final FileUpload first = filesModel.getObject().get(0);
-                chainCodeService.loadInput(first.getContentType(), first.getBytes());
+                chainCodeService.loadInput(first.getContentType(), first.getBytes(), 1);
                 info("Loaded file " + first.getClientFileName() + " (" + first.getContentType() + ")");
-                target.add(origImg,listchaincode, notificationPanel);
+                target.add(origImg, listchaincode, notificationPanel);
             }
         });
         add(form);

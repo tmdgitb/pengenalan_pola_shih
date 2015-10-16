@@ -19,7 +19,6 @@ import java.util.List;
 /**
  * Created by Sigit on 22/09/2015.
  */
-
 @SpringBootApplication
 @Profile("ChainCodeAZ")
 public class ChainCodeAZApp implements CommandLineRunner {

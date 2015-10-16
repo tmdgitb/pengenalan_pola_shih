@@ -6,13 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Name "Geometry" is taken from: On the Encoding of Arbitrary Geometric Configurations - Freeman 1961.
  * Created by Sigit on 03/10/2015.
  */
-public class ChainCode {
+public class Geometry {
     private String character;
-    private String chainCode;
+    private AbsChainCode absChainCode;
     private String kodeBelok;
-    private List<ChainCode> subChainCode = new ArrayList<>();
+    private List<Geometry> subGeometry = new ArrayList<>();
     private Integer x;
     private Integer y;
 
@@ -24,12 +25,16 @@ public class ChainCode {
         this.character = character;
     }
 
-    public String getChainCode() {
-        return chainCode;
+    public AbsChainCode getAbsChainCode() {
+        return absChainCode;
     }
 
-    public void setChainCode(String chainCode) {
-        this.chainCode = chainCode;
+    public String getChainCodeFcce() {
+        return absChainCode.getFcce();
+    }
+
+    public void setAbsChainCode(AbsChainCode absChainCode) {
+        this.absChainCode = absChainCode;
     }
 
     public String getKodeBelok() {
@@ -40,8 +45,8 @@ public class ChainCode {
         this.kodeBelok = kodeBelok;
     }
 
-    public List<ChainCode> getSubChainCode() {
-        return subChainCode;
+    public List<Geometry> getSubGeometry() {
+        return subGeometry;
     }
 
     public Integer getX() {
@@ -103,7 +108,7 @@ public class ChainCode {
     public String toString() {
         return "ChainCode{" +
                 "character='" + character + '\'' +
-                ", chainCode='" + chainCode + '\'' +
+                ", absChainCode='" + absChainCode + '\'' +
                 ", kodeBelok='" + kodeBelok + '\'' +
                 ", x=" + x +
                 ", y=" + y +
