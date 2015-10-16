@@ -8,6 +8,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.markup.html.image.Image;
@@ -44,6 +45,16 @@ public class ChainCodePage extends PubLayout {
         final ListModel<FileUpload> filesModel = new ListModel<>();
         final FileUploadField fileFld = new FileUploadField("fileFld", filesModel);
         form.add(fileFld);
+
+        final TextField<String> modeImage = new TextField<String>("modeImage",
+                Model.of(""));
+        modeImage.setOutputMarkupId(true);
+        form.add(modeImage);
+
+        final TextField<String> msgImage = new TextField<String>("msgImage",
+                Model.of(""));
+        msgImage.setOutputMarkupId( true );
+        form.add(msgImage);
 
         final DynamicImageResource origImgRes = new DynamicImageResource("png") {
             @Override
@@ -88,6 +99,10 @@ public class ChainCodePage extends PubLayout {
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 super.onSubmit(target, form);
+                log.info("mode: {} ", modeImage.getModelObject());
+                final int mode =Integer.parseInt((String) modeImage.getModelObject());
+                final String msg = (String) msgImage.getModelObject();
+                log.info("Message: {} ", msg);
                 final FileUpload first = filesModel.getObject().get(0);
                 chainCodeService.loadInput(first.getContentType(), first.getBytes(), 1);
                 info("Loaded file " + first.getClientFileName() + " (" + first.getContentType() + ")");
