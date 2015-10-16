@@ -25,6 +25,10 @@ public class Geometry {
         this.character = character;
     }
 
+    public AbsChainCode getAbsChainCode() {
+        return absChainCode;
+    }
+
     public String getChainCodeFcce() {
         return absChainCode.getFcce();
     }

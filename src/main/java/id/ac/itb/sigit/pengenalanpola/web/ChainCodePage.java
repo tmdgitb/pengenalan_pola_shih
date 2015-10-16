@@ -75,8 +75,9 @@ public class ChainCodePage extends PubLayout {
         };
         ListView<Geometry> listview = new ListView<Geometry>("listview", listModel) {
             protected void populateItem(ListItem<Geometry> item) {
-                Geometry geometry = item.getModelObject();
-                item.add(new Label("chaincode", geometry.getChainCodeFcce()));
+                final Geometry geometry = item.getModelObject();
+                item.add(new Label("fcce", geometry.getAbsChainCode().getFcce()));
+                item.add(new Label("text", geometry.getAbsChainCode().getText()));
             }
         };
 
@@ -88,7 +89,7 @@ public class ChainCodePage extends PubLayout {
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 super.onSubmit(target, form);
                 final FileUpload first = filesModel.getObject().get(0);
-                chainCodeService.loadInput(first.getContentType(), first.getBytes());
+                chainCodeService.loadInput(first.getContentType(), first.getBytes(), 1);
                 info("Loaded file " + first.getClientFileName() + " (" + first.getContentType() + ")");
                 target.add(origImg, listchaincode, notificationPanel);
             }
