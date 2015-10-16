@@ -46,8 +46,9 @@ public class ChainCodePage extends PubLayout {
         final FileUploadField fileFld = new FileUploadField("fileFld", filesModel);
         form.add(fileFld);
 
+        final Model<String> modeImageModel = Model.of("123");
         final TextField<String> modeImage = new TextField<String>("modeImage",
-                Model.of(""));
+                modeImageModel);
         modeImage.setOutputMarkupId(true);
         form.add(modeImage);
 
@@ -99,10 +100,12 @@ public class ChainCodePage extends PubLayout {
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 super.onSubmit(target, form);
+                log.info("modeimageModel: {}", modeImageModel.getObject());
                 log.info("mode: {} ", modeImage.getModelObject());
-                final int mode =Integer.parseInt((String) modeImage.getModelObject());
                 final String msg = (String) msgImage.getModelObject();
                 log.info("Message: {} ", msg);
+                final int mode =Integer.parseInt((String) modeImage.getModelObject());
+
                 final FileUpload first = filesModel.getObject().get(0);
                 chainCodeService.loadInput(first.getContentType(), first.getBytes(), 1);
                 info("Loaded file " + first.getClientFileName() + " (" + first.getContentType() + ")");
