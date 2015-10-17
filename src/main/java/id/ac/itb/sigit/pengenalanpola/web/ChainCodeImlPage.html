@@ -1,0 +1,48 @@
+<wicket:extend>
+    <div layout:fragment="content" class="container">
+        <section class="page-header" id="banner">
+            <h1>Chaincode</h1>
+
+            <p class="lead">Mencari chaincode dan kode belok</p>
+
+            <div class="row">
+                <div class="col-xs-12">
+                </div>
+            </div>
+        </section>
+        <section>
+            <div class="row">
+                <form class="col-md-6" wicket:id="form">
+                    <p><strong>Data Training</strong></p>
+                    <div>
+                        <input type="file" wicket:id="fileFld" accept="image/*"/>
+                        <p>
+                            <label>Mode</label>:
+                            <span wicket:id="modeImage"></span>
+                        </p>
+                        <p>
+                            <label>Message</label>:
+                            <input wicket:id="msgImage" type="text" size="20" />
+                        </p>
+                        <button class="button" wicket:id="loadBtn">Load</button>
+                    </div>
+                    <p><img wicket:id="origImg" class="img-responsive"/></p>
+                </form>
+                <form class="col-md-6" wicket:id="form2">
+                    <p><strong>Cek Image</strong></p>
+                    <div>
+                        <input type="file" wicket:id="fileFld2" accept="image/*"/>
+                        <p>
+                            <label>Mode</label>:
+                            <span wicket:id="modeImage2"></span>
+                        </p>
+
+                        <button class="button" wicket:id="loadBtn2">Load</button>
+                    </div>
+                    <p><img wicket:id="origImg2" class="img-responsive"/></p>
+                </form>
+            </div>
+
+        </section>
+    </div>
+</wicket:extend>
