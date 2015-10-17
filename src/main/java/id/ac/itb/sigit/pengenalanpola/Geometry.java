@@ -13,6 +13,7 @@ public class Geometry {
     private String character;
     private AbsChainCode absChainCode;
     private String kodeBelok;
+    private RelKodeBelok relKodeBelok;
     private List<Geometry> subGeometries = new ArrayList<>();
     private Integer x;
     private Integer y;
@@ -43,6 +44,14 @@ public class Geometry {
 
     public void setKodeBelok(String kodeBelok) {
         this.kodeBelok = kodeBelok;
+    }
+
+    public RelKodeBelok getRelKodeBelok() {
+        return relKodeBelok;
+    }
+
+    public void setRelKodeBelok(RelKodeBelok relKodeBelok) {
+        this.relKodeBelok = relKodeBelok;
     }
 
     public List<Geometry> getSubGeometries() {

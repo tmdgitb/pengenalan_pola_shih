@@ -59,15 +59,17 @@ public class ChainCodeWhiteConverter {
                     maxHor = x;
                     final AbsChainCode absChainCode = new AbsChainCode(prosesChaincode(y, x, 3, imgMat, 1));
                     Geometry geometry = new Geometry();
-
                     String kodeBelok = calculateKodeBelok(absChainCode.getFcce());
+                    List<RelDirection> rlKodebelok=calculateKodeBelok(absChainCode);
                     geometry.setAbsChainCode(absChainCode);
                     geometry.setKodeBelok(kodeBelok);
+                    geometry.setRelKodeBelok(new RelKodeBelok(rlKodebelok));
                     geometry.setX(x);
                     geometry.setY(y);
 
                     if (absChainCode.getDirs().size() > 20) {
                         log.info("Chaincode object #{} at ({}, {}): {}", objectIdx, x, y, absChainCode);
+                        log.info("kode belok object #{} at ({}, {}): {}", objectIdx, x, y, rlKodebelok);
                         objectIdx++;
                         List<Geometry> subGeometries = subObject(imgMat);
                         if (subGeometries.size() > 0) {
@@ -766,6 +768,61 @@ public class ChainCodeWhiteConverter {
         }
         return kodeBelok;
     }
+
+    private List<RelDirection> calculateKodeBelok(AbsChainCode absChainCode) {
+
+        List<RelDirection> kodeBelok=new ArrayList<>();
+        List<AbsDirection> chainCode=absChainCode.getDirs();
+
+        int tempArah=0;
+
+        for(int i=1;i<chainCode.size();i++)
+        {
+            int sebelum=i-1;
+            int center=i;
+            int sesudah=i+1;
+            if(sesudah >= chainCode.size())
+            {
+                sesudah=0;
+            }
+            int kalkulasiArah=chainCode.get(center).getFcce()-chainCode.get(sesudah).getFcce();
+            if(kalkulasiArah<0)
+            {
+                kalkulasiArah+=8;
+            }
+
+            if(i==1)
+            {
+                tempArah=kalkulasiArah;
+                kodeBelok.add(converter(tempArah));
+            }
+            else
+            {
+                if(!(tempArah==kalkulasiArah))
+                {
+                    tempArah=kalkulasiArah;
+                    kodeBelok.add(converter(tempArah));
+                }
+            }
+            log.info("center :{},  sesudah :{}, hasil :{}",chainCode.get(center).getFcce(),chainCode.get(sesudah).getFcce(),kalkulasiArah);
+            chainCode.get(i);
+        }
+
+        return kodeBelok;
+    }
+
+    private RelDirection converter(int kalkulasiArah)
+    {
+        if(kalkulasiArah==0) {return RelDirection.F;}
+        else if(kalkulasiArah==1){return RelDirection.FL;}
+        else if(kalkulasiArah==2){return RelDirection.FR;}
+        else if(kalkulasiArah==3){return RelDirection.L;}
+        else if(kalkulasiArah==4){return RelDirection.R;}
+        else if(kalkulasiArah==5){return RelDirection.BL;}
+        else if(kalkulasiArah==6){return RelDirection.BR;}
+        else{return RelDirection.B;}
+    }
+
 
     private  boolean cekRowAndCol(int row,int col)
     {
