@@ -92,6 +92,10 @@ public class ChainCodePage extends PubLayout {
                 final Geometry geometry = item.getModelObject();
                 item.add(new Label("fcce", geometry.getAbsChainCode().getFcce()));
                 item.add(new Label("text", geometry.getAbsChainCode().getText()));
+                item.add(new Label("cbfcce", geometry.getRelKodeBelok().getFcce()));
+                item.add(new Label("cbtext", geometry.getRelKodeBelok().getText()));
+                item.add(new Label("shortcbfcce", geometry.getRelKodeBelok().getFcceShort()));
+                item.add(new Label("shortcbtext", geometry.getRelKodeBelok().getTextShort()));
 
                 IModel<List<Geometry>> sublistModel = new AbstractReadOnlyModel<List<Geometry>>() {
                     @Override
@@ -107,6 +111,7 @@ public class ChainCodePage extends PubLayout {
 
                     }
                 };
+                item.add(sublistview);
 
             }
         };

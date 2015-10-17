@@ -61,6 +61,7 @@ public class ChainCodeWhiteConverter {
                     Geometry geometry = new Geometry();
                     String kodeBelok = calculateKodeBelok(absChainCode.getFcce());
                     List<RelDirection> rlKodebelok=calculateKodeBelok(absChainCode);
+                    //List<RelDirection> newRlKodebelok=penyederhanaanKodeBelok(rlKodebelok);
                     geometry.setAbsChainCode(absChainCode);
                     geometry.setKodeBelok(kodeBelok);
                     geometry.setRelKodeBelok(new RelKodeBelok(rlKodebelok));
@@ -70,6 +71,7 @@ public class ChainCodeWhiteConverter {
                     if (absChainCode.getDirs().size() > 20) {
                         log.info("Chaincode object #{} at ({}, {}): {}", objectIdx, x, y, absChainCode);
                         log.info("kode belok object #{} at ({}, {}): {}", objectIdx, x, y, rlKodebelok);
+                        log.info("new kode belok object #{} at ({}, {}): {}", objectIdx, x, y, geometry.getRelKodeBelok().getTextShort());
                         objectIdx++;
                         List<Geometry> subGeometries = subObject(imgMat);
                         if (subGeometries.size() > 0) {
@@ -804,15 +806,20 @@ public class ChainCodeWhiteConverter {
                     kodeBelok.add(converter(tempArah));
                 }
             }
-            log.info("center :{},  sesudah :{}, hasil :{}",chainCode.get(center).getFcce(),chainCode.get(sesudah).getFcce(),kalkulasiArah);
             chainCode.get(i);
         }
 
         return kodeBelok;
     }
 
+
     private RelDirection converter(int kalkulasiArah)
     {
+        if(kalkulasiArah>7)
+        {
+            int i=0;
+        }
+
         if(kalkulasiArah==0) {return RelDirection.F;}
         else if(kalkulasiArah==1){return RelDirection.FL;}
         else if(kalkulasiArah==2){return RelDirection.FR;}

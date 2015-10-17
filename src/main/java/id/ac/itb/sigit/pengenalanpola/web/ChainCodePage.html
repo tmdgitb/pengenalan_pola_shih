@@ -1,9 +1,9 @@
 <wicket:extend>
     <div layout:fragment="content" class="container">
         <section class="page-header" id="banner">
-            <h1>Histogram</h1>
+            <h1>Chaincode</h1>
 
-            <p class="lead">Menghitung frekuensi kemunculan setiap level elemen warna</p>
+            <p class="lead">Mencari chaincode dan kode belok</p>
 
             <div class="row">
                 <div class="col-xs-12">
@@ -33,6 +33,12 @@
                         <li wicket:id="listview">
                             <p wicket:id="fcce">01234</p>
                             <p wicket:id="text">→→→→→→→→→→↓↘↓↓↘↓↘</p>
+                            <p>Kode Belok</p>
+                            <p wicket:id="cbfcce">01234</p>
+                            <p wicket:id="cbtext">→→→→→→→→→→↓↘↓↓↘↓↘</p>
+                            <p>Penyederhanaan Kode Belok</p>
+                            <p wicket:id="shortcbfcce">01234</p>
+                            <p wicket:id="shortcbtext">→→→→→→→→→→↓↘↓↓↘↓↘</p>
                             <ol>
                                 <li wicket:id="sublistview">
                                     <p wicket:id="fcce">01234</p>
