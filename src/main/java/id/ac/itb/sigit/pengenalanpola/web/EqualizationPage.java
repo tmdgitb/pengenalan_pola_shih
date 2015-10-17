@@ -111,6 +111,14 @@ public class EqualizationPage  extends PubLayout {
                 return histogram1;
             }
         }));
+
+        origDiv.add(new CumuHistPanel("origCumuHist", new AbstractReadOnlyModel<Histogram>() {
+            @Override
+            public Histogram getObject() {
+                return histogram1;
+            }
+        }));
+
         add(origDiv);
 
         final ListModel<FileUpload> filesModel = new ListModel<>();
@@ -128,7 +136,7 @@ public class EqualizationPage  extends PubLayout {
                 Mat eqMat = histogramEq.loadInput(first.getContentType(), origBytes);
                 histogram2.loadInput(eqMat);
 
-                target.add(origImg, resultDiv, notificationPanel);
+                target.add(origDiv, resultDiv, notificationPanel);
             }
         });
         add(form);

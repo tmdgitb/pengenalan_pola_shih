@@ -39,13 +39,12 @@ public class CumuHistPanel extends GenericPanel<Histogram> {
             protected String load() {
                 final Histogram histogram = model.getObject();
                 final String dataJson = Histogram.histToJsonC3(histogram.getGrayscale2(),
-                        histogram.getRed(), histogram.getGreen(), histogram.getBlue());
+                        histogram.getCumulative(), histogram.getCumulative(), histogram.getCumulative());
                 return "var chart = c3.generate({\n" +
                         "    bindto: '#" + getMarkupId() + " .chart',\n" +
                         "    data: {" +
                         "        columns: " + dataJson + "," +
-                        "        colors: {grayscale: 'gray', red: 'red', green: 'green', blue: 'blue'},\n" +
-                        "        types: {grayscale: 'bar'}\n" +
+                        "        colors: {grayscale: 'gray'},\n" +
                         "    }" +
                         "});";
             }
