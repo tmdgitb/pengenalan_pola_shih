@@ -1,9 +1,9 @@
 <wicket:extend>
     <div layout:fragment="content" class="container">
         <section class="page-header" id="banner">
-            <h1>Chaincode</h1>
+            <h1>Kode Belok</h1>
 
-            <p class="lead">Mencari chaincode dan kode belok</p>
+            <p class="lead">Implementasi kode belok</p>
 
             <div class="row">
                 <div class="col-xs-12">
@@ -42,7 +42,18 @@
                     <p><img wicket:id="origImg2" class="img-responsive"/></p>
                 </form>
             </div>
-
+            <div class="row">
+                <div>
+                    <p class="lead">Hasil Pengenalan</p>
+                </div>
+                <div class="col-md-12" wicket:id="listPengenalan">
+                    <ol style="word-wrap: break-word">
+                        <li wicket:id="listview">
+                            <p wicket:id="recognize"></p>
+                        </li>
+                    </ol>
+                </div>
+            </div>
         </section>
     </div>
 </wicket:extend>

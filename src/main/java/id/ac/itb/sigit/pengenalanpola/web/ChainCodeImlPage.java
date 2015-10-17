@@ -1,5 +1,6 @@
 package id.ac.itb.sigit.pengenalanpola.web;
 
+import id.ac.itb.sigit.pengenalanpola.RecognizedSymbol;
 import com.google.common.collect.ImmutableList;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.extensions.markup.html.bootstrap.ladda.LaddaAjaxButton;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import org.wicketstuff.annotation.mount.MountPath;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.List;
 
 @MountPath("chaincodeiml")
@@ -39,9 +41,13 @@ public class ChainCodeImlPage extends PubLayout {
     @Inject
     private ChainCodeService chainCodeService;
 
+    private List<Geometry> dataTraining=new ArrayList<>();
+
+    private List<RecognizedSymbol> hasilPengenalan = new ArrayList<>();
 
     public ChainCodeImlPage(PageParameters parameters) {
         super(parameters);
+
 
         final Form<Void> form = new Form<>("form");
 
@@ -90,12 +96,35 @@ public class ChainCodeImlPage extends PubLayout {
                 final FileUpload first = filesModel.getObject().get(0);
                 chainCodeService.loadInput(first.getContentType(), first.getBytes(), mode);
 
+                Geometry datageometry= chainCodeService.getGeometries().get(0);
+                datageometry.setCharacter(msg);
+                dataTraining.add(datageometry);
 
                 info("Loaded file " + first.getClientFileName() + " (" + first.getContentType() + ")");
                 target.add(origImg, notificationPanel);
             }
         });
         add(form);
+
+        //===============================================list============================================//
+        final WebMarkupContainer listPengenalan = new WebMarkupContainer("listPengenalan");
+        listPengenalan.setOutputMarkupId(true);
+
+        IModel<List<RecognizedSymbol>> listModel = new AbstractReadOnlyModel<List<RecognizedSymbol>>() {
+            @Override
+            public List<RecognizedSymbol> getObject() {
+                return hasilPengenalan;
+            }
+        };
+        ListView<RecognizedSymbol> listview = new ListView<RecognizedSymbol>("listview", listModel) {
+            protected void populateItem(ListItem<RecognizedSymbol> item) {
+                final RecognizedSymbol recognizedSymbol = item.getModelObject();
+                item.add(new Label("recognize", recognizedSymbol.getName()));
+            }
+        };
+
+        listPengenalan.add(listview);
+        add(listPengenalan);
 
         //=====================================form 2======================================================//
 
@@ -134,11 +163,35 @@ public class ChainCodeImlPage extends PubLayout {
                 super.onSubmit(target, form);
                 log.info("mode: {} ", modeImage2.getModelObject());
                 final int mode = modeImage2.getModelObject() == GrayscaleMode.BLACK_ON_WHITE ? 1 : 0;
-
                 final FileUpload first = filesModel2.getObject().get(0);
                 chainCodeService.loadInput(first.getContentType(), first.getBytes(), mode);
+
+                hasilPengenalan = new ArrayList<>();
+
+                for (int i = 0; i < chainCodeService.getGeometries().size(); i++) {
+                    final Geometry charPlat = chainCodeService.getGeometries().get(i);
+                    for (int j = 0; j < dataTraining.size(); j++) {
+                        final Geometry trainingCode = dataTraining.get(j);
+                        final String resampledPlat = Geometry.resample(charPlat.getKodeBelok(), trainingCode.getKodeBelok().length());
+                        final double confidence = Geometry.match(resampledPlat, trainingCode.getKodeBelok());
+                        if (confidence >= 0.6) {
+                            log.info("Matched {}% {}: actual={} training={}",
+                                    Math.round(confidence * 100), trainingCode.getCharacter(), resampledPlat, trainingCode.getKodeBelok());
+                            hasilPengenalan.add(new RecognizedSymbol(trainingCode.getCharacter(), charPlat, confidence));
+                            break;
+                        }
+                    }
+                }
+
+                for (int i = 0; i < hasilPengenalan.size(); i++) {
+                    final RecognizedSymbol recognized = hasilPengenalan.get(i);
+                    log.info("Found #{} {}% at ({},{}): {}",
+                            i, Math.round(recognized.getConfidence() * 100),
+                            recognized.getGeometry().getX(), recognized.getGeometry().getY(), recognized.getName());
+                }
+
                 info("Loaded file " + first.getClientFileName() + " (" + first.getContentType() + ")");
-                target.add(origImg2, notificationPanel);
+                target.add(origImg2, listPengenalan,notificationPanel);
             }
         });
         add(form2);
