@@ -23,26 +23,32 @@ public class ZhangSuenService {
     private boolean flag[][];
     private List<ZhangSuenFitur> zhangSuenFiturList;
 
-    public opencv_core.Mat loadInput(File imageFile)
+    public opencv_core.Mat loadInput(File imageFile,int mode)
     {
         log.info("Processing image file '{}' ...", imageFile);
         origMat = opencv_highgui.imread(imageFile.getPath());
         grayOrigMat =opencv_highgui.imread(imageFile.getPath(), opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
-        final ByteIndexer idx = grayOrigMat.createIndexer();
+        if (mode == 1) {
+            final InverseImageConverter inverseImage = new InverseImageConverter(grayOrigMat);
+            grayOrigMat = inverseImage.getInverseImage();
+        }
         zhangSuen=new ZhangSuen();
         zhangSuenMat = zhangSuen.process(grayOrigMat);
-        getZhangSuenFitur();
+        getListZhangSuenFitur();
         return origMat;
     }
 
-    public opencv_core.Mat loadInput(String contentType, byte[] inputBytes) {
+    public opencv_core.Mat loadInput(String contentType, byte[] inputBytes,int mode) {
         log.info("Processing input image {}: {} bytes ...", contentType, inputBytes.length);
         origMat = opencv_highgui.imdecode(new opencv_core.Mat(inputBytes), opencv_highgui.CV_LOAD_IMAGE_UNCHANGED);
         grayOrigMat =opencv_highgui.imdecode(new opencv_core.Mat(inputBytes), opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
-        final ByteIndexer idx = grayOrigMat.createIndexer();
+        if (mode == 1) {
+            final InverseImageConverter inverseImage = new InverseImageConverter(grayOrigMat);
+            grayOrigMat = inverseImage.getInverseImage();
+        }
         zhangSuen=new ZhangSuen();
         zhangSuenMat = zhangSuen.process(grayOrigMat);
-        getZhangSuenFitur();
+        getListZhangSuenFitur();
         return origMat;
     }
 
@@ -56,8 +62,17 @@ public class ZhangSuenService {
         return zhangSuenMat;
     }
 
+    //get objek pertama
+    public ZhangSuenFitur getZhangSuenFitur()
+    {
+        if(zhangSuenFiturList==null)
+        {
+            return new ZhangSuenFitur();
+        }
+        return zhangSuenFiturList.get(0);
+    }
 
-    private List<ZhangSuenFitur> getZhangSuenFitur()
+    private List<ZhangSuenFitur> getListZhangSuenFitur()
     {
         flag=new boolean[zhangSuenMat.rows()][ zhangSuenMat.cols()];
         zhangSuenFiturList=new ArrayList<>();
@@ -81,7 +96,6 @@ public class ZhangSuenService {
 
         return zhangSuenFiturList;
     }
-
 
     private ZhangSuenFitur prosesZhangSuenFitur(int x,int y,ByteIndexer idxImg,ZhangSuenFitur zhangSuenFitur)
     {

@@ -14,6 +14,11 @@ public class ZhangSuenFitur {
     public int getBulatan() {
         return bulatan;
     }
+    public String getBulatanString()
+    {
+        return String.valueOf(bulatan);
+    }
+
     public void setBulatan(int bulatan) {
         this.bulatan = bulatan;
     }
@@ -21,37 +26,40 @@ public class ZhangSuenFitur {
     public List<ZhangSuenUjung> getUjung() {
         return ujung;
     }
+    public  String getUjungString()
+    {
+        if(ujung==null)
+        {
+            return "";
+        }
+        String msg=String.valueOf(ujung.size())+"==> ";
+        for(int i=0;i<ujung.size();i++)
+        {
+            msg=msg+"; point x : "+ String.valueOf(ujung.get(i).getEdge().getX())
+                    + " ,point y : "+String.valueOf(ujung.get(i).getEdge().getY());
+        }
+
+        return msg;
+    }
 
     public List<ZhangSuenSimpangan> getSimpangan() {
         return simpangan;
     }
 
+    public  String getSimpanganString()
+    {
+        if(simpangan==null)
+        {
+            return "";
+        }
+        String msg=String.valueOf(simpangan.size())+"==> ";
+        for(int i=0;i<simpangan.size();i++)
+        {
+            msg=msg+"; point x : "+ String.valueOf(simpangan.get(i).getEdge().getX())
+                    + " ,point y : "+String.valueOf(simpangan.get(i).getEdge().getY());
+        }
 
-//    private class Simpangan {
-//        private Edge edge;
-//        List<Edge> points=new ArrayList<>();
-//
-//        public Edge getEdge() {
-//            return edge;
-//        }
-//        public void setEdge(Edge edge) {
-//            this.edge = edge;
-//        }
-//
-//        public List<Edge> getPoints() {
-//            return points;
-//        }
-//    }
-//
-//
-//    private class Ujung {
-//        private Edge edge;
-//
-//        public Edge getEdge() {
-//            return edge;
-//        }
-//        public void setEdge(Edge edge) {
-//            this.edge = edge;
-//        }
-//    }
+        return msg;
+    }
+
 }

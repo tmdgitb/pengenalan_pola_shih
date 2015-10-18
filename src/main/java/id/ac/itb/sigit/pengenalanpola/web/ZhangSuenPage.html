@@ -39,19 +39,32 @@
 
                     <div>
                         <input type="file" wicket:id="fileFld" accept="image/*"/>
+                        <p>
+                            <label>Mode</label>:
+                            <span wicket:id="modeImage"></span>
+                        </p>
                         <button class="button" wicket:id="loadBtn">Load</button>
                     </div>
 
                 </div>
+                <br>
                 <div class="col-md-6">
                     <img wicket:id="origImg" class="img-responsive"/>
                 </div>
                 <div class="col-md-6">
                     <img wicket:id="zhangSuenImg" class="img-responsive"/>
                 </div>
+
+                <div>
+                    <p>Jumlah Ujung : <label wicket:id="jumlahujung"></label></p>
+                </div>
+                <div>
+                    <p>Jumlah Cabang:<label wicket:id="jumlahcabang"></label></p>
+                </div>
+                <div>
+                    <p>Jumlah Bulatan:<label wicket:id="jumlahbulatan"></label></p>
+                </div>
             </div>
-
-
         </form>
     </div>
 </wicket:extend>
