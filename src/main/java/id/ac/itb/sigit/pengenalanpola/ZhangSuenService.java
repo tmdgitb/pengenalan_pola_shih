@@ -59,19 +59,22 @@ public class ZhangSuenService {
 
     private List<ZhangSuenFitur> getZhangSuenFitur()
     {
-        flag=new boolean[ zhangSuenMat.cols()][zhangSuenMat.rows()];
+        flag=new boolean[zhangSuenMat.rows()][ zhangSuenMat.cols()];
         zhangSuenFiturList=new ArrayList<>();
         final ByteIndexer imgIdx = zhangSuenMat.createIndexer();
 
-        for (int x = 0; x < zhangSuenMat.cols(); x++) {
-            for (int y = 0; y < zhangSuenMat.rows(); y++) {
-                int pxl = Byte.toUnsignedInt(imgIdx.get(x, y));
-                if(pxl>250 && ! flag[x][y])
+       // imgIdx.put(0,1,(byte)1);
+
+
+        for (int y = 0; y < zhangSuenMat.rows(); y++) {
+            for (int x = 0; x < zhangSuenMat.cols(); x++) {
+                int pxl = Byte.toUnsignedInt(imgIdx.get( y,x));
+                if(pxl>250 && ! flag[y][x])
                 {
                     ZhangSuenFitur zhangSuenFitur=new ZhangSuenFitur();
                     zhangSuenFitur= prosesZhangSuenFitur(x,y, imgIdx, zhangSuenFitur);
                     zhangSuenFiturList.add(zhangSuenFitur);
-                    log.info("Chaincode object #{} at ({}, {}): {}", zhangSuenFitur, x, y, zhangSuenFitur.getSimpangan());
+                    log.info("zhangSuenFitur object #{} at ({}, {}): {}", zhangSuenFitur, x, y, zhangSuenFitur.getSimpangan());
                 }
             }
         }
@@ -80,54 +83,59 @@ public class ZhangSuenService {
     }
 
 
-    private ZhangSuenFitur prosesZhangSuenFitur(int col,int row,ByteIndexer idxImg,ZhangSuenFitur zhangSuenFitur)
+    private ZhangSuenFitur prosesZhangSuenFitur(int x,int y,ByteIndexer idxImg,ZhangSuenFitur zhangSuenFitur)
     {
-        if(flag[col][row])
+        if(flag[y][x])
         {
             //buletan
             zhangSuenFitur.setBulatan(zhangSuenFitur.getBulatan()+1);
             return zhangSuenFitur;
         }
 
-        flag[col][row]=true;
+       // flag[col][row]=true;
+        flag[y][x]=true;
 
-        if((col - 1)<0 || (row - 1)<0 ||
-        (col+1) >= idxImg.cols()|| (row+1)>=idxImg.rows())
+        if((y - 1)<0 || (x - 1)<0 ||
+        (y+1) >= idxImg.rows()|| (x+1)>=idxImg.cols())
         {
             return zhangSuenFitur;
         }
 
         List<Edge> dataTetangga=new ArrayList<>();
-        Edge edge1=new Edge(col - 1, row - 1);
-        edge1.setvalue(idxImg.get(col - 1, row - 1));
+
+         byte sa= idxImg.get(17,13);
+        byte sa1= idxImg.get(13,17);
+
+        Edge edge1=new Edge(  x-1 ,y -1);
+        edge1.setvalue(idxImg.get( y-1,x-1));
         dataTetangga.add(edge1);
 
-        Edge edge2=new Edge(col-1,row);
-        edge2.setvalue(idxImg.get(col-1,row));
+        Edge edge2=new Edge(  x ,y -1);
+        edge2.setvalue(idxImg.get( y-1,x));
         dataTetangga.add(edge2);
 
-        Edge edge3=new Edge(col-1,row+1);
-        edge3.setvalue(idxImg.get(col-1,row+1));
+        Edge edge3=new Edge(  x+1 ,y -1);
+        edge3.setvalue(idxImg.get( y-1,x+1));
         dataTetangga.add(edge3);
 
-        Edge edge4=new Edge(col,row+1);
-        edge4.setvalue(idxImg.get(col,row+1));
+        Edge edge4=new Edge(  x+1 ,y);
+        edge4.setvalue(idxImg.get( y,x+1));
         dataTetangga.add(edge4);
 
-        Edge edge5=new Edge(col+1,row+1);
-        edge5.setvalue(idxImg.get(col+1,row+1));
+        Edge edge5=new Edge(  x+1 ,y +1);
+        edge5.setvalue(idxImg.get( y + 1,x+1 ));
         dataTetangga.add(edge5);
 
-        Edge edge6=new Edge(col+1,row);
-        edge6.setvalue(idxImg.get(col+1,row));
+        Edge edge6=new Edge(  x ,y +1);
+        edge6.setvalue(idxImg.get( y + 1,x ));
         dataTetangga.add(edge6);
 
-        Edge edge7=new Edge(col+1,row-1);
-        edge7.setvalue(idxImg.get(col+1,row-1));
+        Edge edge7=new Edge(  x-1 ,y +1);
+        edge7.setvalue(idxImg.get( y + 1,x-1 ));
         dataTetangga.add(edge7);
 
-        Edge edge8=new Edge(col,row-1);
-        edge8.setvalue(idxImg.get(col,row-1));
+        Edge edge8=new Edge(  x-1 ,y );
+        edge8.setvalue(idxImg.get( y ,x-1 ));
         dataTetangga.add(edge8);
 
         List<Edge> nextStep=new ArrayList<>();
@@ -156,6 +164,11 @@ public class ZhangSuenService {
                     }
                     temppotition = i;
                 }
+
+                if(i==dataTetangga.size()-1 && dataTetangga.get(0).getvalue()!=0)
+                {
+                    cabang = false;
+                }
             }
         }
         if(nextStep.size()==0)
@@ -169,6 +182,7 @@ public class ZhangSuenService {
             ZhangSuenUjung zhangSuenUjung=new ZhangSuenUjung();
             zhangSuenUjung.setEdge(nextStep.get(0));
             zhangSuenFitur.getUjung().add(zhangSuenUjung);
+            zhangSuenFitur= prosesZhangSuenFitur(nextStep.get(0).getX(),nextStep.get(0).getY(), idxImg, zhangSuenFitur);
             return zhangSuenFitur;
         }
         else if (cabang && nextStep.size()>2)
@@ -176,12 +190,12 @@ public class ZhangSuenService {
             //cabang
 
             ZhangSuenSimpangan zhangSuenSimpangan = new ZhangSuenSimpangan();
-            zhangSuenSimpangan.setEdge(new Edge(col,row));
+            zhangSuenSimpangan.setEdge(new Edge(y,x));
             zhangSuenSimpangan.getPoints().addAll(nextStep);
             zhangSuenFitur.getSimpangan().add(zhangSuenSimpangan);
             for(int i=0;i<nextStep.size();i++)
             {
-                if(!flag[nextStep.get(i).getX()][nextStep.get(i).getY()]) {
+                if(!flag[nextStep.get(i).getY()][nextStep.get(i).getX()]) {
                     zhangSuenFitur = prosesZhangSuenFitur(nextStep.get(i).getX(), nextStep.get(i).getY(), idxImg, zhangSuenFitur);
                 }
             }
@@ -191,7 +205,7 @@ public class ZhangSuenService {
         {
             for(int i=0;i<nextStep.size();i++)
             {
-                if(!flag[nextStep.get(i).getX()][nextStep.get(i).getY()]) {
+                if(!flag[nextStep.get(i).getY()][nextStep.get(i).getX()]) {
                     zhangSuenFitur = prosesZhangSuenFitur(nextStep.get(i).getX(), nextStep.get(i).getY(), idxImg, zhangSuenFitur);
                 }
             }
