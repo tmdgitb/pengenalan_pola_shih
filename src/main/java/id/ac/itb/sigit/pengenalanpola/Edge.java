@@ -9,6 +9,7 @@ public class Edge implements Serializable {
 
     private int x;
     private int y;
+    private  byte value;
 
     public Edge(int x, int y) {
         this.x = x;
@@ -29,5 +30,13 @@ public class Edge implements Serializable {
 
     public void setY(int y) {
         this.y = y;
+    }
+
+    public byte getvalue() {
+        return value;
+    }
+
+    public void setvalue(byte status) {
+        this.value = status;
     }
 }
