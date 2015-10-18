@@ -117,9 +117,6 @@ public class ZhangSuenService {
 
         List<Edge> dataTetangga=new ArrayList<>();
 
-         byte sa= idxImg.get(17,13);
-        byte sa1= idxImg.get(13,17);
-
         Edge edge1=new Edge(  x-1 ,y -1);
         edge1.setvalue(idxImg.get( y-1,x-1));
         dataTetangga.add(edge1);
