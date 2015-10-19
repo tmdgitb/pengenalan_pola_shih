@@ -1,9 +1,11 @@
 package id.ac.itb.sigit.pengenalanpola;
 
+import java.io.Serializable;
+
 /**
  * Created by Sigit on 17/10/2015.
  */
-public class RecognizedSymbol {
+public class RecognizedSymbol implements Serializable {
     private String name;
     private Geometry geometry;
     private double confidence;

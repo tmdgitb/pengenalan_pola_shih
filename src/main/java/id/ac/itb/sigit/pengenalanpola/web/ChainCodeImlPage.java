@@ -41,13 +41,12 @@ public class ChainCodeImlPage extends PubLayout {
     @Inject
     private ChainCodeService chainCodeService;
 
-    private List<Geometry> dataTraining=new ArrayList<>();
+    private List<Geometry> dataTraining = new ArrayList<>();
 
     private List<RecognizedSymbol> hasilPengenalan = new ArrayList<>();
 
     public ChainCodeImlPage(PageParameters parameters) {
         super(parameters);
-
 
         final Form<Void> form = new Form<>("form");
 
@@ -95,12 +94,15 @@ public class ChainCodeImlPage extends PubLayout {
 
                 final FileUpload first = filesModel.getObject().get(0);
                 chainCodeService.loadInput(first.getContentType(), first.getBytes(), mode);
+                if (!chainCodeService.getGeometries().isEmpty()) {
+                    final Geometry datageometry = chainCodeService.getGeometries().get(0);
+                    datageometry.setCharacter(msg);
+                    dataTraining.add(datageometry);
 
-                Geometry datageometry= chainCodeService.getGeometries().get(0);
-                datageometry.setCharacter(msg);
-                dataTraining.add(datageometry);
-
-                info("Loaded file " + first.getClientFileName() + " (" + first.getContentType() + ")");
+                    info("Loaded file " + first.getClientFileName() + " (" + first.getContentType() + ")");
+                } else {
+                    error("File " + first.getClientFileName() + " (" + first.getContentType() + ") tidak mengandung geometry yang dapat dikenali sebagai chain code");
+                }
                 target.add(origImg, notificationPanel);
             }
         });
@@ -120,6 +122,11 @@ public class ChainCodeImlPage extends PubLayout {
             protected void populateItem(ListItem<RecognizedSymbol> item) {
                 final RecognizedSymbol recognizedSymbol = item.getModelObject();
                 item.add(new Label("recognize", recognizedSymbol.getName()));
+                final String confidenceStr = String.format("%.0f%%", recognizedSymbol.getConfidence() * 100d);
+                item.add(new Label("confidence", confidenceStr));
+                item.add(new Label("x", recognizedSymbol.getGeometry().getX()));
+                item.add(new Label("y", recognizedSymbol.getGeometry().getY()));
+                item.add(new Label("text", recognizedSymbol.getGeometry().getAbsChainCode().getText()));
             }
         };
 

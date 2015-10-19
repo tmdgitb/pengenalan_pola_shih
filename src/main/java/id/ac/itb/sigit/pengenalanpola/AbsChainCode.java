@@ -1,5 +1,6 @@
 package id.ac.itb.sigit.pengenalanpola;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -7,7 +8,7 @@ import java.util.stream.Collectors;
 /**
  * Created by ceefour on 16/10/2015.
  */
-public class AbsChainCode {
+public class AbsChainCode implements Serializable {
 
     final List<AbsDirection> dirs;
 

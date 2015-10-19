@@ -1,5 +1,6 @@
 package id.ac.itb.sigit.pengenalanpola;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -7,7 +8,7 @@ import java.util.stream.Collectors;
 /**
  * Created by Sigit on 17/10/2015.
  */
-public class RelKodeBelok {
+public class RelKodeBelok implements Serializable {
     final List<RelDirection> dirs;
     List<RelDirection> newDirs;
 

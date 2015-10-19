@@ -2,6 +2,7 @@ package id.ac.itb.sigit.pengenalanpola;
 
 import com.google.common.base.Preconditions;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,7 +10,7 @@ import java.util.List;
  * Name "Geometry" is taken from: On the Encoding of Arbitrary Geometric Configurations - Freeman 1961.
  * Created by Sigit on 03/10/2015.
  */
-public class Geometry {
+public class Geometry implements Serializable {
     private String character;
     private AbsChainCode absChainCode;
     private String kodeBelok;
