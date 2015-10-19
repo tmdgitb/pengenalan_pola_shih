@@ -26,6 +26,9 @@ public class Histogram implements Serializable, Histogramable {
     public enum AxisScale {
         LINEAR,
         LOG10,
+        /**
+         * WRONG
+         */
         LOG2
     }
 
@@ -41,7 +44,7 @@ public class Histogram implements Serializable, Histogramable {
             for (int i = 0; i < hist.length; i++) {
                 if (scale == AxisScale.LOG10) {
                     series[1 + i] = hist[i] == 0 ? 0 : Math.log10(hist[i]);
-                } else if (scale == AxisScale.LOG2) {
+                } else if (scale == AxisScale.LOG2) { // WRONG VALUE!
                     series[1 + i] = hist[i] == 0 ? 0 : Math.log10(hist[i]) / Math.log10(2.0);
                 } else {
                     series[1 + i] = hist[i];

@@ -38,7 +38,7 @@ public class MultiHistogramPanel extends GenericPanel<Histogram> {
             @Override
             protected String load() {
                 final Histogram histogram = model.getObject();
-                final String dataJson = Histogram.histToJsonC3(Histogram.AxisScale.LOG2, histogram.getGrayscale(),
+                final String dataJson = Histogram.histToJsonC3(Histogram.AxisScale.LOG10, histogram.getGrayscale(),
                         histogram.getRed(), histogram.getGreen(), histogram.getBlue());
                 return "var chart = c3.generate({\n" +
                         "    bindto: '#" + getMarkupId() + " .chart',\n" +
