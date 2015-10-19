@@ -3,11 +3,9 @@ package id.ac.itb.sigit.pengenalanpola;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bytedeco.javacpp.indexer.ByteIndexer;
-import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacpp.opencv_highgui;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.Serializable;
@@ -25,17 +23,29 @@ public class Histogram implements Serializable, Histogramable {
 
     private static Logger log = LoggerFactory.getLogger(Histogram.class);
 
+    public enum AxisScale {
+        LINEAR,
+        LOG10,
+        LOG2
+    }
+
     public static class ChartDataC3 {
         public List<Object[]> columns = new ArrayList<>();
 
         public ChartDataC3() {
         }
 
-        public void addSeries(String color, int[] hist) {
+        public void addSeries(AxisScale scale, String color, int[] hist) {
             Object[] series = new Object[257];
             series[0] = color;
             for (int i = 0; i < hist.length; i++) {
-                series[1 + i] = hist[i] == 0 ? 0 : Math.log10(hist[i]);
+                if (scale == AxisScale.LOG10) {
+                    series[1 + i] = hist[i] == 0 ? 0 : Math.log10(hist[i]);
+                } else if (scale == AxisScale.LOG2) {
+                    series[1 + i] = hist[i] == 0 ? 0 : Math.log10(hist[i]) / Math.log10(2.0);
+                } else {
+                    series[1 + i] = hist[i];
+                }
             }
             columns.add(series);
         }
@@ -63,23 +73,23 @@ public class Histogram implements Serializable, Histogramable {
         }
     }
 
-    public static String histToJsonC3(String color, int[] hist) {
+    public static String histToJsonC3(AxisScale scale, String color, int[] hist) {
         try {
             ChartDataC3 data = new ChartDataC3();
-            data.addSeries(color, hist);
+            data.addSeries(scale, color, hist);
             return MAPPER.writeValueAsString(data);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Error JSON histogram", e);
         }
     }
 
-    public static String histToJsonC3(int[] grayscale, int[] red, int[] green, int[] blue) {
+    public static String histToJsonC3(AxisScale scale, int[] grayscale, int[] red, int[] green, int[] blue) {
         try {
             ChartDataC3 data = new ChartDataC3();
-            data.addSeries("grayscale", grayscale);
-            data.addSeries("red", red);
-            data.addSeries("green", green);
-            data.addSeries("blue", blue);
+            data.addSeries(scale, "grayscale", grayscale);
+            data.addSeries(scale, "red", red);
+            data.addSeries(scale, "green", green);
+            data.addSeries(scale, "blue", blue);
             return MAPPER.writeValueAsString(data.columns);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Error JSON histogram", e);
@@ -89,11 +99,14 @@ public class Histogram implements Serializable, Histogramable {
 //    private Mat origMat;
 //    private Mat grayMat;
     private int uniqueColorCount;
+    private int grayscale[];
     private int red[];
     private int green[];
     private int blue[];
-    private int grayscale[];
-    private int grayscale2[];
+    private int grayscaleCumulative[];
+    private int redCumulative[];
+    private int greenCumulative[];
+    private int blueCumulative[];
 
     public Mat loadInput(File imageFile) {
         log.info("Processing image file '{}' ...", imageFile);
@@ -152,7 +165,10 @@ public class Histogram implements Serializable, Histogramable {
             green = new int[256];
             blue = new int[256];
             grayscale = new int[256];
-            grayscale2 = new int[256];
+            grayscaleCumulative = new int[256];
+            redCumulative = new int[256];
+            greenCumulative = new int[256];
+            blueCumulative = new int[256];
 
             byte[] imagByte = new byte[3];
             byte[] fGamaByte = getFGamaByte();
@@ -189,16 +205,38 @@ public class Histogram implements Serializable, Histogramable {
             }
 
             int mass = origMat.cols() * origMat.rows();
-            int sum = 0;
+            int sum;
             //calculate the scale factor
             float pxScale = (float) 255.0 / mass;
 
-            //make CDF
+            //make CDF = cumulative distribution function
+            sum = 0;
             for (int i = 0; i < grayscale.length; i++){
                 sum += grayscale[i];
                 int value = (int) (pxScale * sum);
                 if (value > 255) { value = 255; }
-                grayscale2[i] = value;
+                grayscaleCumulative[i] = value;
+            }
+            sum = 0;
+            for (int i = 0; i < red.length; i++){
+                sum += red[i];
+                int value = (int) (pxScale * sum);
+                if (value > 255) { value = 255; }
+                redCumulative[i] = value;
+            }
+            sum = 0;
+            for (int i = 0; i < green.length; i++){
+                sum += green[i];
+                int value = (int) (pxScale * sum);
+                if (value > 255) { value = 255; }
+                greenCumulative[i] = value;
+            }
+            sum = 0;
+            for (int i = 0; i < blue.length; i++){
+                sum += blue[i];
+                int value = (int) (pxScale * sum);
+                if (value > 255) { value = 255; }
+                blueCumulative[i] = value;
             }
         } finally {
             grayIdx.release();
@@ -228,8 +266,20 @@ public class Histogram implements Serializable, Histogramable {
         return grayscale;
     }
 
-    public int[] getGrayscale2() {
-        return grayscale2;
+    public int[] getGrayscaleCumulative() {
+        return grayscaleCumulative;
+    }
+
+    public int[] getRedCumulative() {
+        return redCumulative;
+    }
+
+    public int[] getGreenCumulative() {
+        return greenCumulative;
+    }
+
+    public int[] getBlueCumulative() {
+        return blueCumulative;
     }
 
     @Override

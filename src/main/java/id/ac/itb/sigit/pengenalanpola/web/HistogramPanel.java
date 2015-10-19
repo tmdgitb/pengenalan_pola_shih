@@ -36,7 +36,7 @@ public class HistogramPanel extends GenericPanel<int[]> {
         final LoadableDetachableModel<String> c3Model = new LoadableDetachableModel<String>() {
             @Override
             protected String load() {
-                final String dataJson = Histogram.histToJsonC3(name, model.getObject());
+                final String dataJson = Histogram.histToJsonC3(Histogram.AxisScale.LOG10, name, model.getObject());
                 return "var chart = c3.generate({\n" +
                         "    bindto: '#" + getMarkupId() + " .chart',\n" +
                         "    data: " + dataJson + "\n" +

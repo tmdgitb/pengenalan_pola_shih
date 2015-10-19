@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import de.agilecoders.wicket.webjars.request.resource.WebjarsCssResourceReference;
 import de.agilecoders.wicket.webjars.request.resource.WebjarsJavaScriptResourceReference;
 import id.ac.itb.sigit.pengenalanpola.Histogram;
-import id.ac.itb.sigit.pengenalanpola.Histogramable;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.HeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -14,7 +13,6 @@ import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -38,13 +36,13 @@ public class CumuHistPanel extends GenericPanel<Histogram> {
             @Override
             protected String load() {
                 final Histogram histogram = model.getObject();
-                final String dataJson = Histogram.histToJsonC3(histogram.getGrayscale2(),
-                        histogram.getCumulative(), histogram.getCumulative(), histogram.getCumulative());
+                final String dataJson = Histogram.histToJsonC3(Histogram.AxisScale.LINEAR,
+                        histogram.getGrayscaleCumulative(), histogram.getRedCumulative(), histogram.getGreenCumulative(), histogram.getBlueCumulative());
                 return "var chart = c3.generate({\n" +
                         "    bindto: '#" + getMarkupId() + " .chart',\n" +
                         "    data: {" +
                         "        columns: " + dataJson + "," +
-                        "        colors: {grayscale: 'gray'},\n" +
+                        "        colors: {grayscale: 'gray', red: 'red', green: 'green', blue: 'blue'},\n" +
                         "    }" +
                         "});";
             }
