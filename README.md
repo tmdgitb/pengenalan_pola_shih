@@ -2,6 +2,13 @@
 
 Mengambil byte data dari image.
 
+## Cara Menjalankan Aplikasi yang Sudah Dibuild
+
+1. Buka Command Prompt di folder aplikasi
+2. Jalankan perintah:
+
+        pengenalanpola_shih
+
 ## DaemonApp
 
 Gunakan browser untuk membuka http://localhost:8080/
