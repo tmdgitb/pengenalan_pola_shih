@@ -21,7 +21,7 @@ public class RelKodeBelok implements Serializable {
         return dirs;
     }
 
-    public String getFcce() {
+    public String getDfcce() {
         return dirs.stream().map(it -> Byte.toString(it.getDfcce())).collect(Collectors.joining());
     }
 

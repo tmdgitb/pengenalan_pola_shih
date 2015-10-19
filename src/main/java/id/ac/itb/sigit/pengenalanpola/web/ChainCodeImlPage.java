@@ -61,6 +61,7 @@ public class ChainCodeImlPage extends PubLayout {
 
         final TextField<String> msgImage = new TextField<String>("msgImage",
                 Model.of(""));
+        msgImage.setRequired(true);
         form.add(msgImage);
 
         final DynamicImageResource origImgRes = new DynamicImageResource("png") {
@@ -126,7 +127,11 @@ public class ChainCodeImlPage extends PubLayout {
                 item.add(new Label("confidence", confidenceStr));
                 item.add(new Label("x", recognizedSymbol.getGeometry().getX()));
                 item.add(new Label("y", recognizedSymbol.getGeometry().getY()));
-                item.add(new Label("text", recognizedSymbol.getGeometry().getAbsChainCode().getText()));
+                item.add(new Label("absText", recognizedSymbol.getGeometry().getAbsChainCode().getText()));
+//                item.add(new Label("dfcce", recognizedSymbol.getGeometry().getRelKodeBelok().getDfcce()));
+                item.add(new Label("dfcce", recognizedSymbol.getGeometry().getKodeBelok()));
+                item.add(new Label("resampledDfcce", recognizedSymbol.getResampledDfcce()));
+                item.add(new Label("trainingDfcce", recognizedSymbol.getTrainingDfcce()));
             }
         };
 
@@ -179,12 +184,15 @@ public class ChainCodeImlPage extends PubLayout {
                     final Geometry charPlat = chainCodeService.getGeometries().get(i);
                     for (int j = 0; j < dataTraining.size(); j++) {
                         final Geometry trainingCode = dataTraining.get(j);
-                        final String resampledPlat = Geometry.resample(charPlat.getKodeBelok(), trainingCode.getKodeBelok().length());
-                        final double confidence = Geometry.match(resampledPlat, trainingCode.getKodeBelok());
+                        final String resampledDfcce = Geometry.resample(charPlat.getKodeBelok(), trainingCode.getKodeBelok().length());
+                        final double confidence = Geometry.match(resampledDfcce, trainingCode.getKodeBelok());
                         if (confidence >= 0.6) {
                             log.info("Matched {}% {}: actual={} training={}",
-                                    Math.round(confidence * 100), trainingCode.getCharacter(), resampledPlat, trainingCode.getKodeBelok());
-                            hasilPengenalan.add(new RecognizedSymbol(trainingCode.getCharacter(), charPlat, confidence));
+                                    Math.round(confidence * 100), trainingCode.getCharacter(), resampledDfcce, trainingCode.getKodeBelok());
+                            final RecognizedSymbol recognizedSymbol = new RecognizedSymbol(trainingCode.getCharacter(), charPlat, confidence);
+                            recognizedSymbol.setResampledDfcce(resampledDfcce);
+                            recognizedSymbol.setTrainingDfcce(trainingCode.getKodeBelok());
+                            hasilPengenalan.add(recognizedSymbol);
                             break;
                         }
                     }

@@ -9,6 +9,8 @@ public class RecognizedSymbol implements Serializable {
     private String name;
     private Geometry geometry;
     private double confidence;
+    private String resampledDfcce;
+    private String trainingDfcce;
 
     public RecognizedSymbol(String name, Geometry geometry, double confidence) {
         this.name = name;
@@ -38,5 +40,21 @@ public class RecognizedSymbol implements Serializable {
 
     public void setConfidence(double confidence) {
         this.confidence = confidence;
+    }
+
+    public String getResampledDfcce() {
+        return resampledDfcce;
+    }
+
+    public void setResampledDfcce(String resampledDfcce) {
+        this.resampledDfcce = resampledDfcce;
+    }
+
+    public String getTrainingDfcce() {
+        return trainingDfcce;
+    }
+
+    public void setTrainingDfcce(String trainingDfcce) {
+        this.trainingDfcce = trainingDfcce;
     }
 }
