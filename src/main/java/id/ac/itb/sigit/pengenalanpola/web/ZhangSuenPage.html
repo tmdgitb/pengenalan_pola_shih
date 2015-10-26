@@ -12,7 +12,7 @@
         </section>
         <form  wicket:id="form">
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-6">
                     <p><strong>Original</strong></p>
 
                     <div>
@@ -24,23 +24,26 @@
                         <button class="button" wicket:id="loadBtn">Load</button>
                     </div>
 
-                </div>
-                <br>
-                <div class="col-md-6">
                     <img wicket:id="origImg" class="img-responsive"/>
                 </div>
-                <div class="col-md-6">
-                    <img wicket:id="zhangSuenImg" class="img-responsive"/>
-                </div>
+                <div class="col-md-6" wicket:id="resultDiv">
+                    <p><img wicket:id="zhangSuenImg" class="img-responsive"/></p>
 
-                <div>
-                    <p>Jumlah Ujung : <label wicket:id="jumlahujung"></label></p>
-                </div>
-                <div>
-                    <p>Jumlah Cabang:<label wicket:id="jumlahcabang"></label></p>
-                </div>
-                <div>
-                    <p>Jumlah Bulatan:<label wicket:id="jumlahbulatan"></label></p>
+                    <div class="well well-sm">
+                        <p>Jumlah Ujung : <span wicket:id="jumlahujung"></span></p>
+                        <ol>
+                            <li wicket:id="edgeLv">(<span wicket:id="x"/>, <span wicket:id="y"/>)</li>
+                        </ol>
+                    </div>
+                    <div class="well well-sm">
+                        <p>Jumlah Cabang: <span wicket:id="jumlahcabang"></span></p>
+                        <ol>
+                            <li wicket:id="crossLv">(<span wicket:id="x"/>, <span wicket:id="y"/>)</li>
+                        </ol>
+                    </div>
+                    <div class="well well-sm">
+                        <p>Jumlah Bulatan: <span wicket:id="jumlahbulatan"></span></p>
+                    </div>
                 </div>
             </div>
         </form>

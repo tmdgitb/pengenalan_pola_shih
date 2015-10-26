@@ -5,6 +5,7 @@ import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacpp.opencv_highgui;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.List;
 /**
  * Created by Sigit on 16/10/2015.
  */
+@Service
 public class ZhangSuenService {
 
     private ZhangSuen zhangSuen;
