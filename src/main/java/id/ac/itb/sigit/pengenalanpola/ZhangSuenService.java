@@ -95,7 +95,7 @@ public class ZhangSuenService {
     private ZhangSuenFitur prosesZhangSuenFitur(int x, int y, ByteIndexer idxImg, ZhangSuenFitur zhangSuenFitur) {
         if (flag[y][x]) {
             //buletan
-            zhangSuenFitur.setLoopCount(zhangSuenFitur.getLoopCount() + 1);
+            zhangSuenFitur.getLoops().add(new Loop(x, y));
             return zhangSuenFitur;
         }
 

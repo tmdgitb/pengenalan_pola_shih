@@ -3,10 +3,7 @@ package id.ac.itb.sigit.pengenalanpola.web;
 import com.google.common.collect.ImmutableList;
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.extensions.markup.html.bootstrap.ladda.LaddaAjaxButton;
-import id.ac.itb.sigit.pengenalanpola.GrayscaleMode;
-import id.ac.itb.sigit.pengenalanpola.ZhangSuenService;
-import id.ac.itb.sigit.pengenalanpola.ZhangSuenCross;
-import id.ac.itb.sigit.pengenalanpola.ZhangSuenEdge;
+import id.ac.itb.sigit.pengenalanpola.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -138,10 +135,23 @@ public class ZhangSuenPage extends PubLayout {
             }
         });
 
-        final MultiLineLabel multilabelbulatan = new MultiLineLabel("jumlahbulatan", new AbstractReadOnlyModel<Object>() {
+        final MultiLineLabel multilabelbulatan = new MultiLineLabel("jumlahbulatan", new AbstractReadOnlyModel<Integer>() {
             @Override
-            public String getObject(){
-                return zhangSuenService.getZhangSuenFitur().getLoopString();//jumlah bulatan
+            public Integer getObject(){
+                return zhangSuenService.getZhangSuenFitur().getLoops().size();//jumlah bulatan
+            }
+        });
+        final AbstractReadOnlyModel<List<Loop>> loopsModel = new AbstractReadOnlyModel<List<Loop>>() {
+            @Override
+            public List<Loop> getObject() {
+                return zhangSuenService.getZhangSuenFitur().getLoops();
+            }
+        };
+        resultDiv.add(new ListView<Loop>("loopLv", loopsModel) {
+            @Override
+            protected void populateItem(ListItem<Loop> item) {
+                item.add(new Label("x", item.getModelObject().getX()));
+                item.add(new Label("y", item.getModelObject().getY()));
             }
         });
         resultDiv.add(multilabelbulatan);

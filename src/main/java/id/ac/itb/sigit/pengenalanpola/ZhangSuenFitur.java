@@ -7,20 +7,16 @@ import java.util.List;
  * Created by Sigit on 18/10/2015.
  */
 public class ZhangSuenFitur {
-    private int loopCount = 0;
+    private List<Loop> loops = new ArrayList<>();
     private List<ZhangSuenEdge> edges = new ArrayList<>();
     private List<ZhangSuenCross> crosses = new ArrayList<>();
 
-    public int getLoopCount() {
-        return loopCount;
+    public List<Loop> getLoops() {
+        return loops;
     }
 
     public String getLoopString() {
-        return String.valueOf(loopCount);
-    }
-
-    public void setLoopCount(int loopCount) {
-        this.loopCount = loopCount;
+        return String.valueOf(loops);
     }
 
     public List<ZhangSuenEdge> getEdges() {
