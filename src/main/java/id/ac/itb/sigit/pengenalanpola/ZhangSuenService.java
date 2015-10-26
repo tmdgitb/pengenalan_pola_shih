@@ -84,7 +84,7 @@ public class ZhangSuenService {
                     ZhangSuenFitur zhangSuenFitur = new ZhangSuenFitur();
                     zhangSuenFitur = prosesZhangSuenFitur(x, y, imgIdx, zhangSuenFitur);
                     zhangSuenFiturList.add(zhangSuenFitur);
-                    log.info("zhangSuenFitur object #{} at ({}, {}): {}", zhangSuenFitur, x, y, zhangSuenFitur.getSimpangan());
+                    log.info("zhangSuenFitur object #{} at ({}, {}): {}", zhangSuenFitur, x, y, zhangSuenFitur.getCrosses());
                 }
             }
         }
@@ -95,7 +95,7 @@ public class ZhangSuenService {
     private ZhangSuenFitur prosesZhangSuenFitur(int x, int y, ByteIndexer idxImg, ZhangSuenFitur zhangSuenFitur) {
         if (flag[y][x]) {
             //buletan
-            zhangSuenFitur.setBulatan(zhangSuenFitur.getBulatan() + 1);
+            zhangSuenFitur.setLoopCount(zhangSuenFitur.getLoopCount() + 1);
             return zhangSuenFitur;
         }
 
@@ -174,18 +174,18 @@ public class ZhangSuenService {
             return zhangSuenFitur;
         } else if (ujung && nextStep.size() < 2) {
             //ujung
-            ZhangSuenUjung zhangSuenUjung = new ZhangSuenUjung();
-            zhangSuenUjung.setEdge(nextStep.get(0));
-            zhangSuenFitur.getUjung().add(zhangSuenUjung);
+            ZhangSuenEdge zhangSuenEdge = new ZhangSuenEdge();
+            zhangSuenEdge.setEdge(nextStep.get(0));
+            zhangSuenFitur.getEdges().add(zhangSuenEdge);
             zhangSuenFitur = prosesZhangSuenFitur(nextStep.get(0).getX(), nextStep.get(0).getY(), idxImg, zhangSuenFitur);
             return zhangSuenFitur;
         } else if (cabang && nextStep.size() > 2) {
             //cabang
 
-            ZhangSuenSimpangan zhangSuenSimpangan = new ZhangSuenSimpangan();
-            zhangSuenSimpangan.setEdge(new Edge(y, x));
-            zhangSuenSimpangan.getPoints().addAll(nextStep);
-            zhangSuenFitur.getSimpangan().add(zhangSuenSimpangan);
+            ZhangSuenCross zhangSuenCross = new ZhangSuenCross();
+            zhangSuenCross.setEdge(new Edge(y, x));
+            zhangSuenCross.getPoints().addAll(nextStep);
+            zhangSuenFitur.getCrosses().add(zhangSuenCross);
             for (int i = 0; i < nextStep.size(); i++) {
                 if (!flag[nextStep.get(i).getY()][nextStep.get(i).getX()]) {
                     zhangSuenFitur = prosesZhangSuenFitur(nextStep.get(i).getX(), nextStep.get(i).getY(), idxImg, zhangSuenFitur);

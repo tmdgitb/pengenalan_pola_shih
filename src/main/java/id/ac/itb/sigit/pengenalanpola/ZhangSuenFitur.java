@@ -7,51 +7,51 @@ import java.util.List;
  * Created by Sigit on 18/10/2015.
  */
 public class ZhangSuenFitur {
-    private int bulatan = 0;
-    private List<ZhangSuenUjung> ujung = new ArrayList<>();
-    private List<ZhangSuenSimpangan> simpangan = new ArrayList<>();
+    private int loopCount = 0;
+    private List<ZhangSuenEdge> edges = new ArrayList<>();
+    private List<ZhangSuenCross> crosses = new ArrayList<>();
 
-    public int getBulatan() {
-        return bulatan;
+    public int getLoopCount() {
+        return loopCount;
     }
 
-    public String getBulatanString() {
-        return String.valueOf(bulatan);
+    public String getLoopString() {
+        return String.valueOf(loopCount);
     }
 
-    public void setBulatan(int bulatan) {
-        this.bulatan = bulatan;
+    public void setLoopCount(int loopCount) {
+        this.loopCount = loopCount;
     }
 
-    public List<ZhangSuenUjung> getUjung() {
-        return ujung;
+    public List<ZhangSuenEdge> getEdges() {
+        return edges;
     }
 
-    public String getUjungString() {
-        if (ujung == null) {
+    public String getEdgesString() {
+        if (edges == null) {
             return "";
         }
-        String msg = String.valueOf(ujung.size()) + "==> ";
-        for (int i = 0; i < ujung.size(); i++) {
-            msg = msg + "; point x : " + String.valueOf(ujung.get(i).getEdge().getX())
-                    + " ,point y : " + String.valueOf(ujung.get(i).getEdge().getY());
+        String msg = String.valueOf(edges.size()) + "==> ";
+        for (int i = 0; i < edges.size(); i++) {
+            msg = msg + "; point x : " + String.valueOf(edges.get(i).getEdge().getX())
+                    + " ,point y : " + String.valueOf(edges.get(i).getEdge().getY());
         }
 
         return msg;
     }
 
-    public List<ZhangSuenSimpangan> getSimpangan() {
-        return simpangan;
+    public List<ZhangSuenCross> getCrosses() {
+        return crosses;
     }
 
-    public String getSimpanganString() {
-        if (simpangan == null) {
+    public String getCrossesString() {
+        if (crosses == null) {
             return "";
         }
-        String msg = String.valueOf(simpangan.size()) + "==> ";
-        for (int i = 0; i < simpangan.size(); i++) {
-            msg = msg + "; point x : " + String.valueOf(simpangan.get(i).getEdge().getX())
-                    + " ,point y : " + String.valueOf(simpangan.get(i).getEdge().getY());
+        String msg = String.valueOf(crosses.size()) + "==> ";
+        for (int i = 0; i < crosses.size(); i++) {
+            msg = msg + "; point x : " + String.valueOf(crosses.get(i).getEdge().getX())
+                    + " ,point y : " + String.valueOf(crosses.get(i).getEdge().getY());
         }
 
         return msg;

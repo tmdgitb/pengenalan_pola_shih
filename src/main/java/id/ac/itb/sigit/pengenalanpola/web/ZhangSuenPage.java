@@ -5,8 +5,8 @@ import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.extensions.markup.html.bootstrap.ladda.LaddaAjaxButton;
 import id.ac.itb.sigit.pengenalanpola.GrayscaleMode;
 import id.ac.itb.sigit.pengenalanpola.ZhangSuenService;
-import id.ac.itb.sigit.pengenalanpola.ZhangSuenSimpangan;
-import id.ac.itb.sigit.pengenalanpola.ZhangSuenUjung;
+import id.ac.itb.sigit.pengenalanpola.ZhangSuenCross;
+import id.ac.itb.sigit.pengenalanpola.ZhangSuenEdge;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -94,61 +94,57 @@ public class ZhangSuenPage extends PubLayout {
         resultDiv.setOutputMarkupId(true);
 
         final Image zhangsuenImg = new Image("zhangSuenImg",zhangSuenImgRees);
-        zhangsuenImg.setOutputMarkupId(true);
         resultDiv.add(zhangsuenImg);
 
-        MultiLineLabel multilabelujung = new MultiLineLabel("jumlahujung", new AbstractReadOnlyModel<Integer>() {
+        final MultiLineLabel multilabelujung = new MultiLineLabel("jumlahujung", new AbstractReadOnlyModel<Integer>() {
             @Override
             public Integer getObject(){
-                return zhangSuenService.getZhangSuenFitur().getUjung().size();//jumlah ujung
+                return zhangSuenService.getZhangSuenFitur().getEdges().size();//jumlah ujung
             }
         });
         resultDiv.add(multilabelujung);
-        multilabelujung.setOutputMarkupId(true);
-        final AbstractReadOnlyModel<List<ZhangSuenUjung>> edgesModel = new AbstractReadOnlyModel<List<ZhangSuenUjung>>() {
+        final AbstractReadOnlyModel<List<ZhangSuenEdge>> edgesModel = new AbstractReadOnlyModel<List<ZhangSuenEdge>>() {
             @Override
-            public List<ZhangSuenUjung> getObject() {
-                return zhangSuenService.getZhangSuenFitur().getUjung();
+            public List<ZhangSuenEdge> getObject() {
+                return zhangSuenService.getZhangSuenFitur().getEdges();
             }
         };
-        resultDiv.add(new ListView<ZhangSuenUjung>("edgeLv", edgesModel) {
+        resultDiv.add(new ListView<ZhangSuenEdge>("edgeLv", edgesModel) {
             @Override
-            protected void populateItem(ListItem<ZhangSuenUjung> item) {
+            protected void populateItem(ListItem<ZhangSuenEdge> item) {
                 item.add(new Label("x", item.getModelObject().getEdge().getX()));
                 item.add(new Label("y", item.getModelObject().getEdge().getY()));
             }
         });
 
-        MultiLineLabel multilabelcabang = new MultiLineLabel("jumlahcabang", new AbstractReadOnlyModel<Integer>() {
+        final MultiLineLabel multilabelcabang = new MultiLineLabel("jumlahcabang", new AbstractReadOnlyModel<Integer>() {
             @Override
             public Integer getObject(){
-                return zhangSuenService.getZhangSuenFitur().getSimpangan().size(); // jumlah cabang
+                return zhangSuenService.getZhangSuenFitur().getCrosses().size(); // jumlah cabang
             }
         });
         resultDiv.add(multilabelcabang);
-        multilabelcabang.setOutputMarkupId(true);
-        final AbstractReadOnlyModel<List<ZhangSuenSimpangan>> crossesModel = new AbstractReadOnlyModel<List<ZhangSuenSimpangan>>() {
+        final AbstractReadOnlyModel<List<ZhangSuenCross>> crossesModel = new AbstractReadOnlyModel<List<ZhangSuenCross>>() {
             @Override
-            public List<ZhangSuenSimpangan> getObject() {
-                return zhangSuenService.getZhangSuenFitur().getSimpangan();
+            public List<ZhangSuenCross> getObject() {
+                return zhangSuenService.getZhangSuenFitur().getCrosses();
             }
         };
-        resultDiv.add(new ListView<ZhangSuenSimpangan>("crossLv", crossesModel) {
+        resultDiv.add(new ListView<ZhangSuenCross>("crossLv", crossesModel) {
             @Override
-            protected void populateItem(ListItem<ZhangSuenSimpangan> item) {
+            protected void populateItem(ListItem<ZhangSuenCross> item) {
                 item.add(new Label("x", item.getModelObject().getEdge().getX()));
                 item.add(new Label("y", item.getModelObject().getEdge().getY()));
             }
         });
 
-        MultiLineLabel multilabelbulatan = new MultiLineLabel("jumlahbulatan", new AbstractReadOnlyModel<Object>() {
+        final MultiLineLabel multilabelbulatan = new MultiLineLabel("jumlahbulatan", new AbstractReadOnlyModel<Object>() {
             @Override
             public String getObject(){
-                return zhangSuenService.getZhangSuenFitur().getBulatanString();//jumlah bulatan
+                return zhangSuenService.getZhangSuenFitur().getLoopString();//jumlah bulatan
             }
         });
         resultDiv.add(multilabelbulatan);
-        multilabelbulatan.setOutputMarkupId(true);
 
         form.add(resultDiv);
 
@@ -161,8 +157,7 @@ public class ZhangSuenPage extends PubLayout {
                 sdsad="dfs";
                 zhangSuenService.loadInput(first.getContentType(), first.getBytes(),mode);
                 info("Loaded file " + first.getClientFileName() + " (" + first.getContentType() + ")");
-                target.add(origImg, zhangsuenImg,multilabelujung,multilabelcabang,multilabelbulatan,notificationPanel,
-                        resultDiv);
+                target.add(origImg, resultDiv, notificationPanel);
             }
         });
         add(form);
