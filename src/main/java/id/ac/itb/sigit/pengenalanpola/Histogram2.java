@@ -56,9 +56,9 @@ public class Histogram2 {
             lv = new int[4][256];
             uniqueColor = 0;
             int colour[] = new int[3];
-            for (int i = 0; i < row; i++) {
+            for (int i = 0; i < row-1; i++) {
                 opencv_core.Mat scnLine = image.row(i);
-                for (int j = 0; j < col; j++) {
+                for (int j = 0; j < col-1; j++) {
                     byte[] tinyimg = new byte[3];
                     imageIdx.get(i, j, tinyimg);
                     colour[0] = Byte.toUnsignedInt(tinyimg[0]);
@@ -75,7 +75,7 @@ public class Histogram2 {
                 }
             }
         } finally {
-            imageIdx.release();
+       //     imageIdx.release();
         }
     }
 

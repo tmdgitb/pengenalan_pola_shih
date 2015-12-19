@@ -1,5 +1,6 @@
 package id.ac.itb.sigit.pengenalanpola;
 
+import id.ac.itb.sigit.pengenalanpola.*;
 import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.indexer.ByteIndexer;
 import org.bytedeco.javacpp.opencv_core;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 
 /**
- * Created by Sigit A on 10/30/2015.
+ * Created by Yusfia Hafid A on 10/30/2015.
  */
 @Service
 public class OtsuThresholdingContainer {
@@ -32,18 +33,22 @@ public class OtsuThresholdingContainer {
 
     public void setInput(String sources) {
         final File imageFile = new File(sources);
-        // opencv_highgui.imread(imageFile.getPath(), opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
-        this.Input =opencv_highgui.imread(imageFile.getPath(), opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
+        this.Input = opencv_highgui.imread(imageFile.getPath(), opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
         log.info("Input Sudah row={} col={}",Input.rows(),Input.cols());
     }
 
     public void setInput(byte[] gambar){
-        //MatOfByte mb = new MatOfByte();
-        //mb.fromArray(gambar);
-        //this.Input = Highgui.imdecode(mb,Highgui.CV_LOAD_IMAGE_GRAYSCALE);
-
         Mat mb = new Mat(gambar);
         this.Input = opencv_highgui.imdecode(mb, opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
+       // this.bin = opencv_highgui.imdecode(mb, opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
+        //this.binIdx = bin.createIndexer();
+        //grayscale = bin.clone();
+        //zerosBin();
+
+
+       //atOfByte mb = new MatOfByte();
+        //mb.fromArray(gambar);
+        //this.Input = Highgui.imdecode(mb,Highgui.CV_LOAD_IMAGE_GRAYSCALE);
     }
 
     public void setBinnaryTreshold(Integer treshold){
@@ -60,6 +65,12 @@ public class OtsuThresholdingContainer {
         } finally {
             result.deallocate();
         }
+
+
+       // MatOfByte result = new MatOfByte();
+       // Highgui.imencode(".png", Output, result);
+        //byte[] nil = result.toArray();
+        //return nil;
     }
 
     public void setOutput() {
@@ -88,15 +99,33 @@ public class OtsuThresholdingContainer {
             Mat scanLine = Outputsemi.row(i);
             for (int j = 0; j < Outputsemi.cols(); j++) {
                 byte num[] = new byte[1];
-                outputIdx.get(i, j, num);
+                outputIdx.get(0,j,num);
                 if (num[0]==0){
                     outputIdx.put(i,j,(byte)0);
                 }else{
-                    outputIdx.put(i, j, (byte) 255);
+                    outputIdx.put(i,j,(byte)255);
                 }//
             }
         }
         log.info("Selesai sudah row={} col={}",Output.rows(),Output.cols());
+        log.info("Treshold Otsu Value = {}",otsuTresholding.getThresholdValue());
+    }
+
+    public void setOutput2() {
+        log.info("lewat sini rows={} cols={}",Input.rows(), Input.cols());
+        hist.setHistogram(Input);
+        //--------------------------------
+        lookupTable.setSinglelookup();
+        //bn.setTreshold(70);
+        otsuTresholding.setHist(hist);
+        otsuTresholding.findThreshold2();
+        threshold_value = otsuTresholding.getThresholdValue();
+        bn.setTreshold(threshold_value);
+        lookupTable = bn.createBinaryLookup();
+        Mat Outputsemi = bn.getBinaryImage(Input, lookupTable);
+        if (bn.getMin()==0)Outputsemi = bn.getInvers(Outputsemi);
+        Otsuresult = Outputsemi.clone();
+        //log.info("Selesai sudah row={} col={}",Output.rows(),Output.cols());
         log.info("Treshold Otsu Value = {}",otsuTresholding.getThresholdValue());
     }
 
@@ -110,21 +139,33 @@ public class OtsuThresholdingContainer {
         } finally {
             result.deallocate();
         }
+
+       // MatOfByte result = new MatOfByte();
+        //Highgui.imencode(".png", Input, result);
+        //byte[] nil = result.toArray();
+        //return nil;
     }
 
     public byte[] getOtsuResult(){
+
         final ByteIndexer outputIdx = Otsuresult.createIndexer();
+
         for (int i = 0; i < Otsuresult.rows(); i++) {
+            Mat scanLine = Otsuresult.row(i);
             for (int j = 0; j < Otsuresult.cols(); j++) {
                 byte num[] = new byte[1];
+               // scanLine.get(0,j,num);
                 outputIdx.get(0,j,num);
                 if (num[0]==0){
+                    //Otsuresult.put(i,j,0);
                     outputIdx.put(i,j,(byte)0);
                 }else{
+                   // Otsuresult.put(i,j,255);
                     outputIdx.put(i,j,(byte)255);
                 }
             }
         }
+
 
         BytePointer result = new BytePointer();
         try {
@@ -135,6 +176,10 @@ public class OtsuThresholdingContainer {
         } finally {
             result.deallocate();
         }
+        //MatOfByte result = new MatOfByte();
+        //Highgui.imencode(".png", Otsuresult, result);
+        //byte[] nil = result.toArray();
+        //return nil;
     }
 
     public String getThresholdValue(){

@@ -1,0 +1,28 @@
+<wicket:extend>
+    <form wicket:id="form" layout:fragment="content" class="container">
+        <div class="page-header" id="banner">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1>Otsu Thresholding Algorithm</h1>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6" style="padding:4px 0px 15px 0px">
+                <input wicket:id="fileUpload" type="file" accept="image/*"/>
+            </div>
+            <div class="col-md-6" style="padding:4px 0px 15px 0px">
+                <button wicket:id="klik">Pilih</button>
+            </div>
+            <div class="col-md-6">
+                <img class="img-responsive" wicket:id="inputZhangSuen"/>
+            </div>
+            <div class="col-md-6">
+                <img class="img-responsive" wicket:id="otsuThreshold"/>
+            </div>
+            <div>
+                Unique Color :<span wicket:id="markupLabel" class="mark">123</span>
+            </div>
+        </div>
+    </form>
+</wicket:extend>
