@@ -1,10 +1,8 @@
-
-
 package id.ac.itb.sigit.pengenalanpola.web;
 
 import de.agilecoders.wicket.core.markup.html.bootstrap.button.Buttons;
 import de.agilecoders.wicket.extensions.markup.html.bootstrap.ladda.LaddaAjaxButton;
-import id.ac.itb.sigit.pengenalanpola.ImageSharpnessContainer;
+import id.ac.itb.sigit.pengenalanpola.ConvolutionContainer;
 import id.ac.itb.sigit.pengenalanpola.OperatorOption;
 import id.ac.itb.sigit.pengenalanpola.SelectOption;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,29 +24,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Sigit on 19/12/2015.
+ * Created by Sigit A on 11/1/2015.
  */
-public class EdgeDetectionPage extends PubLayout {
-    private static final Logger log = LoggerFactory.getLogger(EdgeDetectionPage.class);
+public class ConvolutionPage extends PubLayout {
+    private static final Logger log = LoggerFactory.getLogger(ConvolutionPage.class);
     @Inject
-    private ImageSharpnessContainer zn;
+    private ConvolutionContainer zn;
     private FileUploadField fileUpload = new FileUploadField("fileUpload");
     private String UPLOAD_FOLDER = "C:\\";
-    private List<SelectOption> OPERATOR_SHARPNESS;
+    private List<SelectOption> OPERATOR_CITRA;
     private SelectOption selected;
 
-    public EdgeDetectionPage(PageParameters parameters) {
+    public ConvolutionPage(PageParameters parameters) {
         super(parameters);
         zn.setInput("A.jpg");
-        zn.processImg(1);
-        OPERATOR_SHARPNESS = new ArrayList<>();
-        OPERATOR_SHARPNESS.add(new SelectOption("Operator Homogen", OperatorOption.HOMOGEN_SHARPNESS));
-        OPERATOR_SHARPNESS.add(new SelectOption("Operator Difference", OperatorOption.DIFFERENCE_SHARPNESS));
-        selected = OPERATOR_SHARPNESS.get(1);
+        zn.processInput();
+        OPERATOR_CITRA = new ArrayList<>();
+        OPERATOR_CITRA.add(new SelectOption("Operator Custom", OperatorOption.CUSTOM_OPERATOR));
+        OPERATOR_CITRA.add(new SelectOption("Operator Sobel", OperatorOption.SOBEL_OPERATOR));
+        OPERATOR_CITRA.add(new SelectOption("Operator Prewit", OperatorOption.PREWIT_OPERATOR));
+        selected = OPERATOR_CITRA.get(1);
         final Form<Void> form = new Form<Void>("form");
         DropDownChoice<SelectOption> listOperator;
         PropertyModel<SelectOption> dropdownmod = new PropertyModel<SelectOption>(this, "selected");
-        listOperator = new DropDownChoice<SelectOption>("sites", dropdownmod, OPERATOR_SHARPNESS);
+        listOperator = new DropDownChoice<SelectOption>("sites", dropdownmod, OPERATOR_CITRA);
         form.add(listOperator);
         Image inputan = new Image("input", new DynamicImageResource("image/png") {
             @Override
@@ -67,14 +66,18 @@ public class EdgeDetectionPage extends PubLayout {
         form.add(outputan);
         outputan.setOutputMarkupId(true);
         form.add(fileUpload);
-        form.add(new LaddaAjaxButton("klik", new Model<>("Operasikan Operator"), Buttons.Type.Default) {
+        form.add(new LaddaAjaxButton("klik", new Model<>("Konvolusi Operator"), Buttons.Type.Default) {
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 super.onSubmit(target, form);
                 final FileUpload uploadedFile = fileUpload.getFileUpload();
                 if (uploadedFile != null) {
                     zn.setInput(uploadedFile.getBytes());
-                    zn.processImg(selected.getValue());
+                    if (selected.getValue() != 0) {
+                        zn.setOperatorKernel(selected.getValue());
+                    } else {
+                        zn.setOperatorKernel(10,1,1);
+                    }
                     log.info("Yang terpilih {}", selected.getValue());
                     target.add(inputan, outputan);
                 }
@@ -90,23 +93,20 @@ public class EdgeDetectionPage extends PubLayout {
 
     public byte[] getOutput() {
         //zn.setOutput();
-        //zn.processImg(selected.getValue());
-        return zn.getOutput();
+        zn.processInput();
+        return zn.getConvolutedOutput();
     }
 
 
     @Override
     public IModel<String> getTitleModel() {
-        return new Model<>("Deteksi Tepi Orde 0");
+        return new Model<>("Deteksi Tepi");
     }
 
     @Override
     public IModel<String> getMetaDescriptionModel() {
-        return new Model<>("Deteksi Tepi Orde 0");
+        return new Model<>("Deteksi Tepi");
     }
-
-
-
 
 
 }
