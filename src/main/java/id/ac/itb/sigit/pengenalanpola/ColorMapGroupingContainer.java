@@ -172,8 +172,10 @@ public class ColorMapGroupingContainer {
                 for (int j = 0; j < input.cols(); j++) {
                     for (int k = 0; k < colorMaps.size(); k++) {
                         ColorPixel px = new ColorPixel();
+
                         byte[] tinyimg = new byte[3];
                         outputIdx.get(i, j, tinyimg);
+
                         px.r = Byte.toUnsignedInt(tinyimg[0]);
                         px.g = Byte.toUnsignedInt(tinyimg[1]);
                         px.b = Byte.toUnsignedInt(tinyimg[2]);
