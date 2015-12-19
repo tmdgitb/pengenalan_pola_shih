@@ -1,6 +1,7 @@
 package id.ac.itb.sigit.pengenalanpola;
 
 import org.bytedeco.javacpp.BytePointer;
+import org.bytedeco.javacpp.indexer.ByteIndexer;
 import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacpp.opencv_core.Mat;
 import org.bytedeco.javacpp.opencv_highgui;
@@ -22,12 +23,14 @@ public class ColorMapGroupingContainer {
     private static final Logger log = LoggerFactory.getLogger(ColorMapGroupingContainer.class);
     private Mat input, output, sample, bin, grayscale;
     private ArrayList<ColorMap> colorMaps = new ArrayList<>();
+    private ByteIndexer binIdx;
 
     public void setInput(String sources) {
 
         final File imageFile = new File(sources);
         this.input =opencv_highgui.imread(imageFile.getPath(), opencv_highgui.CV_LOAD_IMAGE_COLOR);
         this.bin = opencv_highgui.imread(imageFile.getPath(), opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
+        this.binIdx = bin.createIndexer();
         grayscale = bin.clone();
         zerosBin();
         //resizeBin();
@@ -39,6 +42,7 @@ public class ColorMapGroupingContainer {
         Mat mb = new Mat(gambar);
         this.input = opencv_highgui.imdecode(mb, opencv_highgui.CV_LOAD_IMAGE_COLOR);
         this.bin = opencv_highgui.imdecode(mb, opencv_highgui.CV_LOAD_IMAGE_GRAYSCALE);
+        this.binIdx = bin.createIndexer();
         grayscale = bin.clone();
         zerosBin();
         //resizeBin();
@@ -161,29 +165,33 @@ public class ColorMapGroupingContainer {
 
     public void colorGrouping() {
         output = input.clone();
-        for (int i = 0; i < input.rows(); i++) {
-            Mat scanLine = output.row(i);
-            Mat scanLineBin = bin.row(i);
-            for (int j = 0; j < input.cols(); j++) {
-                for (int k = 0; k < colorMaps.size(); k++) {
-                    ColorPixel px = new ColorPixel();
-                    byte[] tinyimg = new byte[3];
-                    scanLine.get(0, j, tinyimg);
-                    px.r = Byte.toUnsignedInt(tinyimg[0]);
-                    px.g = Byte.toUnsignedInt(tinyimg[1]);
-                    px.b = Byte.toUnsignedInt(tinyimg[2]);
-                    ColorMap temp = getRepresentativeColorMap(px);
-                    //log.info("location r,g,b {},{},{} temp {}",px.r,px.g,px.b,temp.getGrup());
+        final ByteIndexer outputIdx = output.createIndexer();
+        try {
+            output = input.clone();
+            for (int i = 0; i < input.rows(); i++) {
+                for (int j = 0; j < input.cols(); j++) {
+                    for (int k = 0; k < colorMaps.size(); k++) {
+                        ColorPixel px = new ColorPixel();
+                        byte[] tinyimg = new byte[3];
+                        outputIdx.get(i, j, tinyimg);
+                        px.r = Byte.toUnsignedInt(tinyimg[0]);
+                        px.g = Byte.toUnsignedInt(tinyimg[1]);
+                        px.b = Byte.toUnsignedInt(tinyimg[2]);
+                        ColorMap temp = getRepresentativeColorMap(px);
+                        //log.info("location r,g,b {},{},{} temp {}",px.r,px.g,px.b,temp.getGrup());
 
-                    if (!temp.getGrup().equals("no group")) {
-                        //log.info("location x,y {},{}",i,j);
-                        tinyimg[0] = (byte) 255;
-                        tinyimg[1] = (byte) 255;
-                        tinyimg[2] = (byte) 255;
-                        scanLineBin.put(0, j, tinyimg);
+                        if (!temp.getGrup().equals("no group")) {
+                            //log.info("location x,y {},{}",i,j);
+                            tinyimg[0] = (byte) 255;
+                            tinyimg[1] = (byte) 255;
+                            tinyimg[2] = (byte) 255;
+                            binIdx.put(i, j, tinyimg);
+                        }
                     }
                 }
             }
+        } finally {
+            outputIdx.release();
         }
 
         DFSIteration dfi = new DFSIteration();
@@ -191,17 +199,14 @@ public class ColorMapGroupingContainer {
         dfi.fillForeground();
         ArrayList<BoundingObject> bo = dfi.getBoundingObject();
         for (int i = 0; i < bo.size(); i++) {
-            bo.get(i).drawBoundingBox(output, grayscale,bin, new Scalar(255, 0, 0));
+            bo.get(i).drawBoundingBox(output, grayscale,bin, new opencv_core.Scalar(255, 0, 0, 0));
         }
     }
 
     public void zerosBin() {
         for (int i = 0; i < bin.rows(); i++) {
-            Mat scanLine = bin.row(i);
             for (int j = 0; j < bin.cols(); j++) {
-                byte[] data = new byte[1];
-                data[0] = 0;
-                scanLine.put(0, j, data);
+                binIdx.put(i, j, (byte) 0);
             }
         }
     }
@@ -211,7 +216,7 @@ public class ColorMapGroupingContainer {
             //Mat cpyInput = new Mat();
             opencv_core.Size e = Resizer.resizeTo500Max(bin.rows(), bin.cols());
             log.info("Matrix size = {}", e);
-            opencv_highgui.Resize(bin, bin, e);
+            opencv_imgproc.resize(bin, bin, e);
             //Input = cpyInput.clone();
         }
     }
@@ -224,7 +229,7 @@ public class ColorMapGroupingContainer {
 
             opencv_core.Size e = Resizer.resizeTo500Max(input.rows(), input.cols());
             log.info("Matrix size = {}", e);
-            Imgproc.resize(input, input, e, 0, 0, Imgproc.INTER_CUBIC);
+            opencv_imgproc.resize(input, input, e, 0, 0, opencv_imgproc.INTER_CUBIC);
             //Input = cpyInput.clone();
         }
     }

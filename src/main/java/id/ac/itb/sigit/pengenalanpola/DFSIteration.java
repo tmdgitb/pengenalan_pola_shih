@@ -1,5 +1,6 @@
 package id.ac.itb.sigit.pengenalanpola;
 
+import org.bytedeco.javacpp.indexer.ByteIndexer;
 import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacpp.opencv_core.*;
 import org.slf4j.Logger;
@@ -84,20 +85,23 @@ public class DFSIteration {
     }
 
     private boolean checkNeightbouringElement(int i, int j) {
-        if ((i >= 0 && i < binary.rows() && j >= 0 && j < binary.cols())) {
-            byte[] data = new byte[1];
-            binary.get(i, j, data);
-            if (Byte.toUnsignedInt(data[0]) == foreground && !cek[i][j]) {
-                return true;
-            } else {
-                return false;
-            }
-        }else return false;
+        final ByteIndexer idx = binary.createIndexer();
+        try {
+            if ((i >= 0 && i < binary.rows() && j >= 0 && j < binary.cols())) {
+                byte data = idx.get(i, j);
+                if (Byte.toUnsignedInt(data) == foreground && !cek[i][j]) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else return false;
+        } finally {
+
+        }
     }
 
     private void assignMark(int i, int j) {
         cek[i][j] = true;
     }
-
 
 }

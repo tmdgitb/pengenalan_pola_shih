@@ -1,6 +1,7 @@
 package id.ac.itb.sigit.pengenalanpola;
 
 
+import org.bytedeco.javacpp.indexer.ByteIndexer;
 import org.bytedeco.javacpp.opencv_core;
 
 /**
@@ -46,32 +47,36 @@ public class Histogram2 {
     }
 
     public void setHistogram(opencv_core.Mat image) {
-        int row = image.rows();
-        int col = image.cols();
-        totalPix = row*col;
-        distribution = new byte[256 * 256 * 256];
-        lv = new int[4][256];
-        uniqueColor = 0;
-        int colour[] = new int[3];
-        for (int i = 0; i < row; i++) {
-            opencv_core.Mat scnLine = image.row(i);
-            for (int j = 0; j < col; j++) {
-                byte[] tinyimg = new byte[3];
-                scnLine.get(0, j, tinyimg);
-                colour[0] = Byte.toUnsignedInt(tinyimg[0]);
-                colour[1] = Byte.toUnsignedInt(tinyimg[1]);
-                colour[2] = Byte.toUnsignedInt(tinyimg[2]);
-                byte temp = distribution[colour[0] * 256 * 256 + colour[1] * 256 + colour[2]];
-                distribution[colour[0] * 256 * 256 + colour[1] * 256 + colour[2]] = 1;
-                if (distribution[colour[0] * 256 * 256 + colour[1] * 256 + colour[2]] == 1 && temp == 0)
-                    uniqueColor++;
-                lv[0][colour[0]]++;
-                lv[1][colour[1]]++;
-                lv[2][colour[2]]++;
-                lv[3][(int) ((colour[0] + colour[1] + colour[2]) / 3)]++;
+        final ByteIndexer imageIdx = image.createIndexer();
+        try {
+            int row = image.rows();
+            int col = image.cols();
+            totalPix = row*col;
+            distribution = new byte[256 * 256 * 256];
+            lv = new int[4][256];
+            uniqueColor = 0;
+            int colour[] = new int[3];
+            for (int i = 0; i < row; i++) {
+                opencv_core.Mat scnLine = image.row(i);
+                for (int j = 0; j < col; j++) {
+                    byte[] tinyimg = new byte[3];
+                    imageIdx.get(i, j, tinyimg);
+                    colour[0] = Byte.toUnsignedInt(tinyimg[0]);
+                    colour[1] = Byte.toUnsignedInt(tinyimg[1]);
+                    colour[2] = Byte.toUnsignedInt(tinyimg[2]);
+                    byte temp = distribution[colour[0] * 256 * 256 + colour[1] * 256 + colour[2]];
+                    distribution[colour[0] * 256 * 256 + colour[1] * 256 + colour[2]] = 1;
+                    if (distribution[colour[0] * 256 * 256 + colour[1] * 256 + colour[2]] == 1 && temp == 0)
+                        uniqueColor++;
+                    lv[0][colour[0]]++;
+                    lv[1][colour[1]]++;
+                    lv[2][colour[2]]++;
+                    lv[3][(int) ((colour[0] + colour[1] + colour[2]) / 3)]++;
+                }
             }
+        } finally {
+            imageIdx.release();
         }
     }
-
 
 }

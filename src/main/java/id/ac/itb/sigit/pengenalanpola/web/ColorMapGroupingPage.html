@@ -1,0 +1,46 @@
+<wicket:extend>
+    <form wicket:id="form" layout:fragment="content" class="container">
+        <div class="page-header" id="banner">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1>Color Mapping</h1>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="row-md-3">
+                <input wicket:id="sampleUpload" type="file" accept="image/*"/>
+            </div>
+            <div class="row-md-3">
+                Nama Group Sampel : <input wicket:id="group" type="text" size="20"/>
+            </div>
+            <div class="row-md-3" style="padding:4px 0px 15px 0px">
+                <button wicket:id="klikSample">Pilih</button>
+            </div>
+            <div class="row-md-3" style="padding:4px 0px 15px 0px">
+                <button wicket:id="resetSample">Pilih</button>
+            </div>
+            <div class="row-md-6">
+                <img class="img-responsive" wicket:id="sample"/>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="row-md-3">
+                <input wicket:id="fileUpload" type="file" accept="image/*"/><br>
+            </div>
+            <div class="row-md-3">
+                <button wicket:id="klik">Pilih</button>
+            </div>
+            <div class="col-md-4">
+                <img class="img-responsive" wicket:id="input"/>
+            </div>
+            <div class="col-md-4">
+                <img class="img-responsive" wicket:id="bin"/>
+            </div>
+            <div class="col-md-4">
+                <img class="img-responsive" wicket:id="output"/>
+            </div>
+        </div>
+    </form>
+</wicket:extend>

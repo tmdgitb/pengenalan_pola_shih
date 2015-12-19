@@ -1,14 +1,18 @@
 package id.ac.itb.sigit.pengenalanpola;
 
+import org.bytedeco.javacpp.indexer.ByteIndexer;
+import org.bytedeco.javacpp.indexer.Indexer;
 import org.bytedeco.javacpp.opencv_core;
-import org.bytedeco.javacpp.opencv_core.*;
+import org.bytedeco.javacpp.opencv_core.Mat;
+import org.bytedeco.javacpp.opencv_core.Point;
+import org.bytedeco.javacpp.opencv_core.Scalar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 
-import static org.opencv.core.Core.circle;
-import static org.opencv.core.Core.rectangle;
+import static org.bytedeco.javacpp.opencv_core.circle;
+import static org.bytedeco.javacpp.opencv_core.rectangle;
 
 /**
  * Created by Yusfia Hafid A on 11/17/2015.
@@ -92,22 +96,26 @@ public class BoundingObject {
         return false;
     }
 
-    private void findNose(Mat input, Mat grayscsale) {
-        byte[] data = new byte[1];
-        grayscsale.get(x_min, y_min, data);
-        int temp = Byte.toUnsignedInt(data[0]);
-        for (int i = x_min; i < x_max; i++) {
-            for (int j = y_min; j < y_max; j++) {
-                grayscsale.get(i, j, data);
-                int current = Byte.toUnsignedInt(data[0]);
-                if (temp < current) {
-                    temp = current;
-                    x_nose = i;
-                    y_nose = j;
+    private void findNose(Mat input, Mat grayscale) {
+        final ByteIndexer grayscaleIdx = grayscale.createIndexer();
+        try {
+            byte data = grayscaleIdx.get(x_min, y_min);
+            int temp = Byte.toUnsignedInt(data);
+            for (int i = x_min; i < x_max; i++) {
+                for (int j = y_min; j < y_max; j++) {
+                    data = grayscaleIdx.get(i, j);
+                    int current = Byte.toUnsignedInt(data);
+                    if (temp < current) {
+                        temp = current;
+                        x_nose = i;
+                        y_nose = j;
+                    }
                 }
             }
+        } finally {
+            grayscaleIdx.release();
         }
-        circle(input, new Point(y_nose, x_nose), 2, new Scalar(255, 0, 0), 2);
+        circle(input, new Point(y_nose, x_nose), 2, new Scalar(255, 0, 0, 0), 2, 8, 0);
     }
 
     private void findLips(Mat input, Mat binarry) {
@@ -129,35 +137,38 @@ public class BoundingObject {
             }
             if (exist) {
                 mostLeftAndRightLips(i, binarry, y_min, y_max);
-                circle(input, new Point(y_lips_left, x_lips_left), 2, new Scalar(255, 0, 0), 2);
-                circle(input, new Point(y_lips_right, x_lips_right), 2, new Scalar(255, 0, 0), 2);
+                circle(input, new Point(y_lips_left, x_lips_left), 2, new Scalar(255, 0, 0, 0), 2, 8, 0);
+                circle(input, new Point(y_lips_right, x_lips_right), 2, new Scalar(255, 0, 0, 0), 2, 8, 0);
                 break;
             }
         }
         //line(input,new Point(y_min,new_row_bottom),new Point(y_max,new_row_bottom),new Scalar(255,0,0));
     }
 
-    private void mostLeftAndRightLips(int row, Mat binnary, int min_y, int max_y) {
-        Mat scanLine = binnary.row(row);
-        for (int i = min_y; i <= max_y; i++) {
-            byte[] data = new byte[1];
-            scanLine.get(0, i, data);
-            if (Byte.toUnsignedInt(data[0]) == 0 && i == min_y) {
-                i++;
-                scanLine.get(0, i, data);
-                while (Byte.toUnsignedInt(data[0]) != 255) {
+    private void mostLeftAndRightLips(int row, Mat binary, int min_y, int max_y) {
+        final ByteIndexer binaryIdx = binary.createIndexer();
+        try {
+            for (int i = min_y; i <= max_y; i++) {
+                byte data = binaryIdx.get(row, i);
+                if (Byte.toUnsignedInt(data) == 0 && i == min_y) {
                     i++;
-                    scanLine.get(0, i, data);
+                    data = binaryIdx.get(row, i);
+                    while (Byte.toUnsignedInt(data) != 255) {
+                        i++;
+                        data = binaryIdx.get(row, i);
+                    }
+                }
+                if (Byte.toUnsignedInt(data) == 0) {
+                    x_lips_left = row;
+                    y_lips_left = i;
+                    x_lips_right = row;
+                    y_lips_right = i;
+                    iterateLips(row, i, binary);
+                    break;
                 }
             }
-            if (Byte.toUnsignedInt(data[0]) == 0) {
-                x_lips_left = row;
-                y_lips_left = i;
-                x_lips_right = row;
-                y_lips_right = i;
-                iterateLips(row, i, binnary);
-                break;
-            }
+        } finally {
+            binaryIdx.release();
         }
     }
 
@@ -189,38 +200,45 @@ public class BoundingObject {
         }
     }
 
-    private boolean isBlack(int i, int j, Mat binnary) {
-        byte[] data = new byte[1];
-        binnary.get(i, j, data);
-        if (Byte.toUnsignedInt(data[0]) == 0) {
-            return true;
-        } else {
-            return false;
+    private boolean isBlack(int i, int j, Mat binary) {
+        final ByteIndexer binaryIdx = binary.createIndexer();
+        try {
+            byte data = binaryIdx.get(i, j);
+            if (Byte.toUnsignedInt(data) == 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } finally {
+            binaryIdx.release();
         }
     }
 
     private String getLinePattern(Mat binary, int row, int min_y, int max_y) {
-        String pattern = "";
-        byte[] data = new byte[1];
-        Mat scanLine = binary.row(row);
-        for (int i = min_y; i <= max_y; i++) {
-            scanLine.get(0, i, data);
-            if (Byte.toUnsignedInt(data[0]) == 0) {
-                pattern = pattern + "h";
-            } else {
-                pattern = pattern + "p";
+        final ByteIndexer binaryIdx = binary.createIndexer();
+        try {
+            String pattern = "";
+            for (int i = min_y; i <= max_y; i++) {
+                byte data = binaryIdx.get(row, i);
+                if (Byte.toUnsignedInt(data) == 0) {
+                    pattern = pattern + "h";
+                } else {
+                    pattern = pattern + "p";
+                }
             }
-        }
-        char[] p = pattern.toCharArray();
-        char temp = ' ';
-        pattern = "";
-        for (int i = 0; i < p.length; i++) {
-            if (temp != p[i]) {
-                temp = p[i];
-                pattern = pattern + p[i];
+            char[] p = pattern.toCharArray();
+            char temp = ' ';
+            pattern = "";
+            for (int i = 0; i < p.length; i++) {
+                if (temp != p[i]) {
+                    temp = p[i];
+                    pattern = pattern + p[i];
+                }
             }
+            return pattern;
+        } finally {
+            binaryIdx.release();
         }
-        return pattern;
     }
 
     private void addLipsPattern() {
