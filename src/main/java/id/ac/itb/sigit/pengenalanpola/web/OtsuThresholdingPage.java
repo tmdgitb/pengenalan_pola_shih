@@ -52,18 +52,18 @@ public class OtsuThresholdingPage extends PubLayout {
         Label markupLabel = new Label("markupLabel", new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
-                return zn.getHist().getUniqueColorCount()+", Threshold Value : "+zn.getThresholdValue();
+                return zn.getHist().uniqueColor+", Threshold Value : "+zn.getThresholdValue();
             }
         });
 
-        MultiLineLabel multilabelmod = new MultiLineLabel("multiLineLabel", new AbstractReadOnlyModel<String>() {
-            @Override
-            public String getObject(){
-                return getTextLabel();
-            }
-        });
-        form.add(multilabelmod);
-        multilabelmod.setOutputMarkupId(true);
+       // MultiLineLabel multilabelmod = new MultiLineLabel("multiLineLabel", new AbstractReadOnlyModel<String>() {
+        //    @Override
+        //    public String getObject(){
+        //        return getTextLabel();
+        //    }
+        //});
+        //form.add(multilabelmod);
+        //multilabelmod.setOutputMarkupId(true);
         form.add(inputan);
         inputan.setOutputMarkupId(true);
         form.add(otsuan);
@@ -81,7 +81,7 @@ public class OtsuThresholdingPage extends PubLayout {
                 final FileUpload uploadedFile = fileUpload.getFileUpload();
                 if (uploadedFile != null) {
                     zn.setInput(uploadedFile.getBytes());
-                    target.add(inputan,otsuan,outputan,markupLabel,multilabelmod);
+                    target.add(inputan,otsuan,outputan,markupLabel);//,multilabelmod);
                 }
             }
         });
